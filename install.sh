@@ -24,12 +24,12 @@ nvm_source() {
   local NVM_SOURCE_URL
   NVM_SOURCE_URL="$NVM_SOURCE"
   if [ "_$NVM_METHOD" = "_script-nvm-exec" ]; then
-    NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/nvm/master/nvm-exec"
+    NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/master/nvm-exec"
   elif [ -z "$NVM_SOURCE_URL" ]; then
     if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/nvm/master/nvm.sh"
+      NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/master/nvm.sh"
     elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
-      NVM_SOURCE_URL="https://github.com/creationix/nvm.git"
+      NVM_SOURCE_URL="https://github.com/yjhjstz/tnvm.git"
     else
       echo >&2 "Unexpected value \"$NVM_METHOD\" for \$NVM_METHOD"
       return 1
