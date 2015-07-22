@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR="$(command cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$DIR/nvm.sh"
+
+if [ -n "$NODE_VERSION" ]; then
+  tnvm use $NODE_VERSION > /dev/null || (echo "NODE_VERSION not set" >&2 && exit 127)
+else
+  tnvm use > /dev/null || (echo "No .nvmrc file found" >&2 && exit 127)
+fi
+
+exec $@
