@@ -67,12 +67,12 @@ unset NVM_SCRIPT_SOURCE 2> /dev/null
 
 # Setup mirror location if not already set
 if [ -z "$TNVM_NODEJS_ORG_MIRROR" ]; then
-  export TNVM_NODEJS_ORG_MIRROR="http://10.1.18.71:8000/dist/node"
+  export TNVM_NODEJS_ORG_MIRROR="http://121.43.234.185:8000/dist/node"
 fi
 
 
 if [ -z "$TNVM_IOJS_ORG_MIRROR" ]; then
-  export TNVM_IOJS_ORG_MIRROR="http://10.1.18.71:8000/dist/iojs"
+  export TNVM_IOJS_ORG_MIRROR="http://121.43.234.185:8000/dist/iojs"
 fi
 
 
@@ -116,12 +116,12 @@ nvm_find_nvmrc() {
 
 # Obtain nvm version from rc file
 nvm_rc_version() {
-  export NVM_RC_VERSION=''
+  export TNVM_RC_VERSION=''
   local NVMRC_PATH
   NVMRC_PATH="$(nvm_find_nvmrc)"
   if [ -e "$NVMRC_PATH" ]; then
-    read NVM_RC_VERSION < "$NVMRC_PATH"
-    echo "Found '$NVMRC_PATH' with version <$NVM_RC_VERSION>"
+    read TNVM_RC_VERSION < "$NVMRC_PATH"
+    echo "Found '$NVMRC_PATH' with version <$TNVM_RC_VERSION>"
   else
     >&2 echo "No .tnvmrc file found"
     return 1
@@ -1146,7 +1146,7 @@ tnvm() {
       if [ $# -lt 2 ]; then
         version_not_provided=1
         nvm_rc_version
-        if [ -z "$NVM_RC_VERSION" ]; then
+        if [ -z "$TNVM_RC_VERSION" ]; then
           >&2 tnvm help
           return 127
         fi
@@ -1166,7 +1166,7 @@ tnvm() {
         if [ $version_not_provided -ne 1 ]; then
           nvm_rc_version
         fi
-        provided_version="$NVM_RC_VERSION"
+        provided_version="$TNVM_RC_VERSION"
       else
         shift
       fi
@@ -1344,8 +1344,8 @@ tnvm() {
       local PROVIDED_VERSION
       if [ $# -eq 1 ]; then
         nvm_rc_version
-        if [ -n "$NVM_RC_VERSION" ]; then
-          PROVIDED_VERSION="$NVM_RC_VERSION"
+        if [ -n "$TNVM_RC_VERSION" ]; then
+          PROVIDED_VERSION="$TNVM_RC_VERSION"
           VERSION="$(nvm_version "$PROVIDED_VERSION")"
         fi
       else
@@ -1434,8 +1434,8 @@ tnvm() {
       shift
       if [ $# -lt 1 ]; then
         nvm_rc_version && has_checked_nvmrc=1
-        if [ -n "$NVM_RC_VERSION" ]; then
-          VERSION="$(nvm_version "$NVM_RC_VERSION")"
+        if [ -n "$TNVM_RC_VERSION" ]; then
+          VERSION="$(nvm_version "$TNVM_RC_VERSION")"
         else
           VERSION='N/A'
         fi
@@ -1453,7 +1453,7 @@ tnvm() {
           if [ $has_checked_nvmrc -ne 1 ]; then
             nvm_rc_version && has_checked_nvmrc=1
           fi
-          VERSION="$(nvm_version "$NVM_RC_VERSION")"
+          VERSION="$(nvm_version "$TNVM_RC_VERSION")"
         else
           shift
         fi
@@ -1511,7 +1511,7 @@ tnvm() {
         VERSION="$(nvm_version "$provided_version")"
         if [ "_$VERSION" = "_N/A" ]; then
           nvm_rc_version
-          provided_version="$NVM_RC_VERSION"
+          provided_version="$TNVM_RC_VERSION"
           VERSION="$(nvm_version "$provided_version")"
         else
           shift
@@ -1586,9 +1586,9 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
       provided_version="$2"
       if [ $# -eq 1 ]; then
         nvm_rc_version
-        if [ -n "$NVM_RC_VERSION" ]; then
-          provided_version="$NVM_RC_VERSION"
-          VERSION=$(nvm_version "$NVM_RC_VERSION")
+        if [ -n "$TNVM_RC_VERSION" ]; then
+          provided_version="$TNVM_RC_VERSION"
+          VERSION=$(nvm_version "$TNVM_RC_VERSION")
         fi
       elif [ "_$2" != '_system' ]; then
         VERSION="$(nvm_version "$provided_version")"
