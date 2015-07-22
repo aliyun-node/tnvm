@@ -19,24 +19,6 @@ nvm_is_alias() {
   \alias "$1" > /dev/null 2>&1
 }
 
-nvm_get_latest() {
-  local NVM_LATEST_URL
-  if nvm_has "curl"; then
-    NVM_LATEST_URL="$(curl -q -w "%{url_effective}\n" -L -s -S http://latest.nvm.sh -o /dev/null)"
-  elif nvm_has "wget"; then
-    NVM_LATEST_URL="$(wget http://latest.nvm.sh --server-response -O /dev/null 2>&1 | awk '/^  Location: /{DEST=$2} END{ print DEST }')"
-  else
-    >&2 echo 'tnvm needs curl or wget to proceed.'
-    return 1
-  fi
-  if [ "_$NVM_LATEST_URL" = "_" ]; then
-    >&2 echo "http://latest.nvm.sh did not redirect to the latest release on Github"
-    return 2
-  else
-    echo "$NVM_LATEST_URL" | awk -F'/' '{print $NF}'
-  fi
-}
-
 nvm_download() {
   if nvm_has "curl"; then
     curl -q $*
@@ -126,9 +108,9 @@ nvm_find_up() {
 
 nvm_find_nvmrc() {
   local dir
-  dir="$(nvm_find_up '.nvmrc')"
-  if [ -e "$dir/.nvmrc" ]; then
-    echo "$dir/.nvmrc"
+  dir="$(nvm_find_up '.tnvmrc')"
+  if [ -e "$dir/.tnvmrc" ]; then
+    echo "$dir/.tnvmrc"
   fi
 }
 
@@ -141,7 +123,7 @@ nvm_rc_version() {
     read NVM_RC_VERSION < "$NVMRC_PATH"
     echo "Found '$NVMRC_PATH' with version <$NVM_RC_VERSION>"
   else
-    >&2 echo "No .nvmrc file found"
+    >&2 echo "No .tnvmrc file found"
     return 1
   fi
 }
