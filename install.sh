@@ -8,8 +8,8 @@ tnvm_has() {
   type "$1" > /dev/null 2>&1
 }
 
-if [ -z "$NVM_DIR" ]; then
-  NVM_DIR="$HOME/.tnvm"
+if [ -z "$TNVM_DIR" ]; then
+  TNVM_DIR="$HOME/.tnvm"
 fi
 
 #
@@ -54,20 +54,20 @@ tnvm_download() {
 }
 
 install_tnvm_from_git() {
-  if [ -d "$NVM_DIR/.git" ]; then
-    echo "=> tnvm is already installed in $NVM_DIR, trying to update using git"
+  if [ -d "$TNVM_DIR/.git" ]; then
+    echo "=> tnvm is already installed in $TNVM_DIR, trying to update using git"
     printf "\r=> "
-    cd "$NVM_DIR" && (command git fetch 2> /dev/null || {
-      echo >&2 "Failed to update tnvm, run 'git fetch' in $NVM_DIR yourself." && exit 1
+    cd "$TNVM_DIR" && (command git fetch 2> /dev/null || {
+      echo >&2 "Failed to update tnvm, run 'git fetch' in $TNVM_DIR yourself." && exit 1
     })
   else
-    # Cloning to $NVM_DIR
-    echo "=> Downloading tnvm from git to '$NVM_DIR'"
+    # Cloning to $TNVM_DIR
+    echo "=> Downloading tnvm from git to '$TNVM_DIR'"
     printf "\r=> "
-    mkdir -p "$NVM_DIR"
-    command git clone "$(tnvm_source git)" "$NVM_DIR"
+    mkdir -p "$TNVM_DIR"
+    command git clone "$(tnvm_source git)" "$TNVM_DIR"
   fi
-  cd "$NVM_DIR" && command git checkout --quiet master
+  cd "$TNVM_DIR" && command git checkout --quiet master
   return
 }
 
@@ -77,23 +77,23 @@ install_tnvm_as_script() {
   local NVM_EXEC_SOURCE
   NVM_EXEC_SOURCE=$(tnvm_source script-nvm-exec)
 
-  # Downloading to $NVM_DIR
-  mkdir -p "$NVM_DIR"
-  if [ -d "$NVM_DIR/nvm.sh" ]; then
-    echo "=> tnvm is already installed in $NVM_DIR, trying to update the script"
+  # Downloading to $TNVM_DIR
+  mkdir -p "$TNVM_DIR"
+  if [ -d "$TNVM_DIR/nvm.sh" ]; then
+    echo "=> tnvm is already installed in $TNVM_DIR, trying to update the script"
   else
-    echo "=> Downloading tnvm as script to '$NVM_DIR'"
+    echo "=> Downloading tnvm as script to '$TNVM_DIR'"
   fi
-  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$NVM_DIR/nvm.sh" || {
+  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$TNVM_DIR/nvm.sh" || {
     echo >&2 "Failed to download '$NVM_SOURCE_LOCAL'"
     return 1
   }
-  tnvm_download -s "$NVM_EXEC_SOURCE" -o "$NVM_DIR/nvm-exec" || {
+  tnvm_download -s "$NVM_EXEC_SOURCE" -o "$TNVM_DIR/nvm-exec" || {
     echo >&2 "Failed to download '$NVM_EXEC_SOURCE'"
     return 2
   }
-  chmod a+x "$NVM_DIR/nvm-exec" || {
-    echo >&2 "Failed to mark '$NVM_DIR/nvm-exec' as executable"
+  chmod a+x "$TNVM_DIR/nvm-exec" || {
+    echo >&2 "Failed to mark '$TNVM_DIR/nvm-exec' as executable"
     return 3
   }
 }
@@ -158,7 +158,7 @@ tnvm_check_global_modules() {
 	=> If you wish to uninstall them at a later point (or re-install them under your
 	=> `nvm` Nodes), you can remove them from the system Node as follows:
 
-	     $ nvm use system
+	     $ tnvm use system
 	     $ npm uninstall -g a_module
 
 	END_MESSAGE
@@ -195,7 +195,7 @@ tnvm_do_install() {
   local NVM_PROFILE
   NVM_PROFILE=$(tnvm_detect_profile)
 
-  SOURCE_STR="\nexport NVM_DIR=\"$NVM_DIR\"\n[ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"  # This loads nvm"
+  SOURCE_STR="\nexport TNVM_DIR=\"$TNVM_DIR\"\n[ -s \"\$TNVM_DIR/nvm.sh\" ] && . \"\$TNVM_DIR/nvm.sh\"  # This loads nvm"
 
   if [ -z "$NVM_PROFILE" ] ; then
     echo "=> Profile not found. Tried $NVM_PROFILE (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
