@@ -143,7 +143,7 @@ tnvm_version_greater_than_or_equal_to() {
   RHS=$(tnvm_normalize_version "$2")
   [ $LHS -ge $RHS ];
 }
-
+# todo 区分
 tnvm_version_dir() {
   local NVM_WHICH_DIR
   NVM_WHICH_DIR="$1"
@@ -162,7 +162,7 @@ tnvm_version_dir() {
 tnvm_alias_path() {
   echo "$(tnvm_version_dir old)/alias"
 }
-
+# todo
 tnvm_version_path() {
   local VERSION
   VERSION="$1"
@@ -248,7 +248,7 @@ tnvm_remote_version() {
     return 3
   fi
 }
-
+#todo
 tnvm_remote_versions() {
   local NVM_IOJS_PREFIX
   NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
@@ -377,7 +377,7 @@ tnvm_alias() {
 
   cat "$NVM_ALIAS_PATH"
 }
-
+#todo
 tnvm_ls_current() {
   local NVM_LS_CURRENT_NODE_PATH
   NVM_LS_CURRENT_NODE_PATH="$(command which node 2> /dev/null)"
@@ -1299,7 +1299,7 @@ tnvm() {
              "$TNVM_DIR/bin/$NVM_PREFIX-${t}" \
              "$TNVM_DIR/bin/$NVM_PREFIX-${t}.tar.gz" \
              "$VERSION_PATH" 2>/dev/null
-      echo "$NVM_SUCCESS_MSG"
+      echo "$NVM_SUCCESS_MSG and reopen your terminal"
 
       # rm any aliases that point to uninstalled version.
       for ALIAS in `command grep -l $VERSION "$(tnvm_alias_path)/*" 2>/dev/null`
@@ -1727,3 +1727,5 @@ elif tnvm_rc_version >/dev/null 2>&1; then
 fi
 
 } # this ensures the entire script is downloaded #
+
+tnvm ls
