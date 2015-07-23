@@ -55,12 +55,12 @@ if tnvm_has "unsetopt"; then
   NVM_CD_FLAGS="-q"
 fi
 
-# Auto detect the NVM_DIR when not set
-if [ -z "$NVM_DIR" ]; then
+# Auto detect the TNVM_DIR when not set
+if [ -z "$TNVM_DIR" ]; then
   if [ -n "$BASH_SOURCE" ]; then
     NVM_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
   fi
-  export NVM_DIR=$(cd $NVM_CD_FLAGS $(dirname "${NVM_SCRIPT_SOURCE:-$0}") > /dev/null && \pwd)
+  export TNVM_DIR=$(cd $NVM_CD_FLAGS $(dirname "${NVM_SCRIPT_SOURCE:-$0}") > /dev/null && \pwd)
 fi
 unset NVM_SCRIPT_SOURCE 2> /dev/null
 
@@ -148,11 +148,11 @@ tnvm_version_dir() {
   local NVM_WHICH_DIR
   NVM_WHICH_DIR="$1"
   if [ -z "$NVM_WHICH_DIR" ] || [ "_$NVM_WHICH_DIR" = "_new" ]; then
-    echo "$NVM_DIR/ali_versions/node"
+    echo "$TNVM_DIR/ali_versions/node"
   elif [ "_$NVM_WHICH_DIR" = "_iojs" ]; then
-    echo "$NVM_DIR/ali_versions/io.js"
+    echo "$TNVM_DIR/ali_versions/io.js"
   elif [ "_$NVM_WHICH_DIR" = "_old" ]; then
-    echo "$NVM_DIR"
+    echo "$TNVM_DIR"
   else
     echo "unknown version dir" >&2
     return 3
@@ -337,12 +337,12 @@ tnvm_num_version_groups() {
 
 tnvm_strip_path() {
   echo "$1" | command sed \
-    -e "s#$NVM_DIR/[^/]*$2[^:]*:##g" \
-    -e "s#:$NVM_DIR/[^/]*$2[^:]*##g" \
-    -e "s#$NVM_DIR/[^/]*$2[^:]*##g" \
-    -e "s#$NVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*:##g" \
-    -e "s#:$NVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*##g" \
-    -e "s#$NVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*##g"
+    -e "s#$TNVM_DIR/[^/]*$2[^:]*:##g" \
+    -e "s#:$TNVM_DIR/[^/]*$2[^:]*##g" \
+    -e "s#$TNVM_DIR/[^/]*$2[^:]*##g" \
+    -e "s#$TNVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*:##g" \
+    -e "s#:$TNVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*##g" \
+    -e "s#$TNVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*##g"
 }
 
 tnvm_prepend_path() {
@@ -385,7 +385,7 @@ tnvm_ls_current() {
     echo 'none'
   elif tnvm_tree_contains_path "$(tnvm_version_dir iojs)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "$(ali-iojs $(iojs --version 2>/dev/null))"
-  elif tnvm_tree_contains_path "$NVM_DIR" "$NVM_LS_CURRENT_NODE_PATH"; then
+  elif tnvm_tree_contains_path "$TNVM_DIR" "$NVM_LS_CURRENT_NODE_PATH"; then
     local VERSION
     VERSION="(ali-node $(node --version 2>/dev/null))"
     echo "$VERSION"
@@ -562,43 +562,43 @@ tnvm_ls() {
       setopt shwordsplit
     fi
 
-    local NVM_DIRS_TO_TEST_AND_SEARCH
-    local NVM_DIRS_TO_SEARCH
+    local TNVM_DIRS_TO_TEST_AND_SEARCH
+    local TNVM_DIRS_TO_SEARCH
     local NVM_ADD_SYSTEM
     NVM_ADD_SYSTEM=false
     if tnvm_is_iojs_version "$PATTERN"; then
-      NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_IOJS"
+      TNVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_IOJS"
       PATTERN="$(tnvm_strip_iojs_prefix "$PATTERN")"
       if tnvm_has_system_iojs; then
         NVM_ADD_SYSTEM=true
       fi
     elif [ "_$PATTERN" = "_$NVM_NODE_PREFIX-" ]; then
-      NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW"
+      TNVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW"
       PATTERN=''
       if tnvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
     else
-      NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW $NVM_VERSION_DIR_IOJS"
+      TNVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW $NVM_VERSION_DIR_IOJS"
       if tnvm_has_system_iojs || tnvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
     fi
-    for NVM_VERSION_DIR in $NVM_DIRS_TO_TEST_AND_SEARCH; do
+    for NVM_VERSION_DIR in $TNVM_DIRS_TO_TEST_AND_SEARCH; do
       if [ -d "$NVM_VERSION_DIR" ]; then
-        NVM_DIRS_TO_SEARCH="$NVM_VERSION_DIR $NVM_DIRS_TO_SEARCH"
+        TNVM_DIRS_TO_SEARCH="$NVM_VERSION_DIR $TNVM_DIRS_TO_SEARCH"
       fi
     done
 
     if [ -z "$PATTERN" ]; then
       PATTERN='v'
     fi
-    if [ -n "$NVM_DIRS_TO_SEARCH" ]; then
-      VERSIONS="$(command find $NVM_DIRS_TO_SEARCH -maxdepth 1 -type d -name "$PATTERN*" \
+    if [ -n "$TNVM_DIRS_TO_SEARCH" ]; then
+      VERSIONS="$(command find $TNVM_DIRS_TO_SEARCH -maxdepth 1 -type d -name "$PATTERN*" \
         | command sed "
             s#$NVM_VERSION_DIR_IOJS/#$NVM_IOJS_PREFIX-#;
             \#$NVM_VERSION_DIR_IOJS# d;
-            s#^$NVM_DIR/##;
+            s#^$TNVM_DIR/##;
             \#^ali_versions\$# d;
             s#^ali_versions/##;
             s#^v#$NVM_NODE_PREFIX-v#;
@@ -903,7 +903,7 @@ tnvm_install_iojs_binary() {
       url="$TNVM_IOJS_ORG_MIRROR/$VERSION/$(tnvm_iojs_prefix)-${t}.tar.gz"
       sum="$(tnvm_download -L -s $TNVM_IOJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep $(tnvm_iojs_prefix)-${t}.tar.gz | command awk '{print $1}')"
       local tmpdir
-      tmpdir="$NVM_DIR/bin/iojs-${t}"
+      tmpdir="$TNVM_DIR/bin/iojs-${t}"
       local tmptarball
       tmptarball="$tmpdir/iojs-${t}.tar.gz"
       local NVM_INSTALL_ERRORED
@@ -963,7 +963,7 @@ tnvm_install_node_binary() {
       url="$TNVM_NODEJS_ORG_MIRROR/$VERSION/node-${t}.tar.gz"
       sum=`tnvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep node-${t}.tar.gz | command awk '{print $1}'`
       local tmpdir
-      tmpdir="$NVM_DIR/bin/node-${t}"
+      tmpdir="$TNVM_DIR/bin/node-${t}"
       local tmptarball
       tmptarball="$tmpdir/node-${t}.tar.gz"
       local NVM_INSTALL_ERRORED
@@ -1019,7 +1019,7 @@ tnvm_install_node_source() {
     MAKE_CXX="CXX=c++"
   fi
   local tmpdir
-  tmpdir="$NVM_DIR/src"
+  tmpdir="$TNVM_DIR/src"
   local tmptarball
   tmptarball="$tmpdir/node-$VERSION.tar.gz"
 
@@ -1116,10 +1116,10 @@ tnvm() {
 
     "debug" )
       echo >&2 "\$SHELL: $SHELL"
-      echo >&2 "\$NVM_DIR: $(echo $NVM_DIR | sed "s#$HOME#\$HOME#g")"
+      echo >&2 "\$TNVM_DIR: $(echo $TNVM_DIR | sed "s#$HOME#\$HOME#g")"
       for NVM_DEBUG_COMMAND in 'tnvm current' 'which node' 'which iojs' 'which npm' 'npm config get prefix' 'npm root -g'
       do
-        local NVM_DEBUG_OUTPUT="$($NVM_DEBUG_COMMAND | sed "s#$NVM_DIR#\$NVM_DIR#g")"
+        local NVM_DEBUG_OUTPUT="$($NVM_DEBUG_COMMAND | sed "s#$TNVM_DIR#\$TNVM_DIR#g")"
         echo >&2 "$NVM_DEBUG_COMMAND: ${NVM_DEBUG_OUTPUT}"
       done
       return 42
@@ -1294,10 +1294,10 @@ tnvm() {
         NVM_SUCCESS_MSG="Uninstalled node $VERSION"
       fi
       # Delete all files related to target version.
-      command rm -rf "$NVM_DIR/src/$NVM_PREFIX-$VERSION" \
-             "$NVM_DIR/src/$NVM_PREFIX-$VERSION.tar.gz" \
-             "$NVM_DIR/bin/$NVM_PREFIX-${t}" \
-             "$NVM_DIR/bin/$NVM_PREFIX-${t}.tar.gz" \
+      command rm -rf "$TNVM_DIR/src/$NVM_PREFIX-$VERSION" \
+             "$TNVM_DIR/src/$NVM_PREFIX-$VERSION.tar.gz" \
+             "$TNVM_DIR/bin/$NVM_PREFIX-${t}" \
+             "$TNVM_DIR/bin/$NVM_PREFIX-${t}.tar.gz" \
              "$VERSION_PATH" 2>/dev/null
       echo "$NVM_SUCCESS_MSG"
 
@@ -1311,25 +1311,25 @@ tnvm() {
       local NEWPATH
       NEWPATH="$(tnvm_strip_path "$PATH" "/bin")"
       if [ "_$PATH" = "_$NEWPATH" ]; then
-        echo "Could not find $NVM_DIR/*/bin in \$PATH" >&2
+        echo "Could not find $TNVM_DIR/*/bin in \$PATH" >&2
       else
         export PATH="$NEWPATH"
         hash -r
-        echo "$NVM_DIR/*/bin removed from \$PATH"
+        echo "$TNVM_DIR/*/bin removed from \$PATH"
       fi
 
       NEWPATH="$(tnvm_strip_path "$MANPATH" "/share/man")"
       if [ "_$MANPATH" = "_$NEWPATH" ]; then
-        echo "Could not find $NVM_DIR/*/share/man in \$MANPATH" >&2
+        echo "Could not find $TNVM_DIR/*/share/man in \$MANPATH" >&2
       else
         export MANPATH="$NEWPATH"
-        echo "$NVM_DIR/*/share/man removed from \$MANPATH"
+        echo "$TNVM_DIR/*/share/man removed from \$MANPATH"
       fi
 
       NEWPATH="$(tnvm_strip_path "$NODE_PATH" "/lib/node_modules")"
       if [ "_$NODE_PATH" != "_$NEWPATH" ]; then
         export NODE_PATH="$NEWPATH"
-        echo "$NVM_DIR/*/lib/node_modules removed from \$NODE_PATH"
+        echo "$TNVM_DIR/*/lib/node_modules removed from \$NODE_PATH"
       fi
     ;;
     "use" )
@@ -1410,7 +1410,7 @@ tnvm() {
       export NVM_PATH="$NVM_VERSION_DIR/lib/node"
       export NVM_BIN="$NVM_VERSION_DIR/bin"
       if [ "$NVM_SYMLINK_CURRENT" = true ]; then
-        command rm -f "$NVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$NVM_DIR/current"
+        command rm -f "$TNVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$TNVM_DIR/current"
       fi
       if tnvm_is_iojs_version "$VERSION"; then
         echo "Now using io.js $(tnvm_strip_iojs_prefix "$VERSION")$(tnvm_print_npm_version)"
@@ -1517,7 +1517,7 @@ tnvm() {
       fi
 
       echo "Running node $VERSION"
-      NODE_VERSION="$VERSION" $NVM_DIR/nvm-exec "$@"
+      NODE_VERSION="$VERSION" $TNVM_DIR/nvm-exec "$@"
     ;;
     "ls" | "list" )
       local NVM_LS_OUTPUT
@@ -1682,7 +1682,7 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
     ;;
     
     "clear-cache" )
-      command rm -f $NVM_DIR/v* "$(tnvm_version_dir)" 2>/dev/null
+      command rm -f $TNVM_DIR/v* "$(tnvm_version_dir)" 2>/dev/null
       echo "Cache cleared."
     ;;
     "version" )
@@ -1700,7 +1700,7 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
         tnvm_version tnvm_rc_version \
         tnvm_version_greater tnvm_version_greater_than_or_equal_to \
         tnvm_supports_source_options > /dev/null 2>&1
-      unset RC_VERSION TNVM_NODEJS_ORG_MIRROR NVM_DIR NVM_CD_FLAGS > /dev/null 2>&1
+      unset RC_VERSION TNVM_NODEJS_ORG_MIRROR TNVM_DIR NVM_CD_FLAGS > /dev/null 2>&1
     ;;
     * )
       >&2 tnvm help

@@ -8,8 +8,8 @@ tnvm_has() {
   type "$1" > /dev/null 2>&1
 }
 
-if [ -z "$NVM_DIR" ]; then
-  NVM_DIR="$HOME/.tnvm"
+if [ -z "$TNVM_DIR" ]; then
+  TNVM_DIR="$HOME/.tnvm"
 fi
 
 #
