@@ -206,7 +206,7 @@ tnvm_do_install() {
     printf "$SOURCE_STR"
     echo
   else
-    if ! grep -qc 'nvm.sh' "$NVM_PROFILE"; then
+    if ! grep -qc '$TNVM_DIR' "$NVM_PROFILE"; then
       echo "=> Appending source string to $NVM_PROFILE"
       printf "$SOURCE_STR\n" >> "$NVM_PROFILE"
     else
