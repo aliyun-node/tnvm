@@ -10,19 +10,19 @@
 
 NVM_SCRIPT_SOURCE="$_"
 
-nvm_has() {
+tnvm_has() {
   type "$1" > /dev/null 2>&1
 }
 
-nvm_is_alias() {
+tnvm_is_alias() {
   # this is intentionally not "command alias" so it works in zsh.
   \alias "$1" > /dev/null 2>&1
 }
 
-nvm_download() {
-  if nvm_has "curl"; then
+tnvm_download() {
+  if tnvm_has "curl"; then
     curl -q $*
-  elif nvm_has "wget"; then
+  elif tnvm_has "wget"; then
     # Emulate curl with wget
     ARGS=$(echo "$*" | command sed -e 's/--progress-bar /--progress=bar /' \
                            -e 's/-L //' \
@@ -34,23 +34,23 @@ nvm_download() {
   fi
 }
 
-nvm_has_system_node() {
+tnvm_has_system_node() {
   [ "$(tnvm deactivate >/dev/null 2>&1 && command -v node)" != '' ]
 }
 
-nvm_has_system_iojs() {
+tnvm_has_system_iojs() {
   [ "$(tnvm deactivate >/dev/null 2>&1 && command -v iojs)" != '' ]
 }
 
-nvm_print_npm_version() {
-  if nvm_has "npm"; then
+tnvm_print_npm_version() {
+  if tnvm_has "npm"; then
     npm --version 2>/dev/null | command xargs printf " (npm v%s)"
   fi
 }
 
 # Make zsh glob matching behave same as bash
 # This fixes the "zsh: no matches found" errors
-if nvm_has "unsetopt"; then
+if tnvm_has "unsetopt"; then
   unsetopt nomatch 2>/dev/null
   NVM_CD_FLAGS="-q"
 fi
@@ -76,7 +76,7 @@ if [ -z "$TNVM_IOJS_ORG_MIRROR" ]; then
 fi
 
 
-nvm_tree_contains_path() {
+tnvm_tree_contains_path() {
   local tree
   tree="$1"
   local node_path
@@ -96,7 +96,7 @@ nvm_tree_contains_path() {
 }
 
 # Traverse up in directory tree to find containing folder
-nvm_find_up() {
+tnvm_find_up() {
   local path
   path=$PWD
   while [ "$path" != "" ] && [ ! -f "$path/$1" ]; do
@@ -106,19 +106,19 @@ nvm_find_up() {
 }
 
 
-nvm_find_nvmrc() {
+tnvm_find_nvmrc() {
   local dir
-  dir="$(nvm_find_up '.tnvmrc')"
+  dir="$(tnvm_find_up '.tnvmrc')"
   if [ -e "$dir/.tnvmrc" ]; then
     echo "$dir/.tnvmrc"
   fi
 }
 
 # Obtain nvm version from rc file
-nvm_rc_version() {
+tnvm_rc_version() {
   export TNVM_RC_VERSION=''
   local NVMRC_PATH
-  NVMRC_PATH="$(nvm_find_nvmrc)"
+  NVMRC_PATH="$(tnvm_find_nvmrc)"
   if [ -e "$NVMRC_PATH" ]; then
     read TNVM_RC_VERSION < "$NVMRC_PATH"
     echo "Found '$NVMRC_PATH' with version <$TNVM_RC_VERSION>"
@@ -128,23 +128,23 @@ nvm_rc_version() {
   fi
 }
 
-nvm_version_greater() {
+tnvm_version_greater() {
   local LHS
-  LHS=$(nvm_normalize_version "$1")
+  LHS=$(tnvm_normalize_version "$1")
   local RHS
-  RHS=$(nvm_normalize_version "$2")
+  RHS=$(tnvm_normalize_version "$2")
   [ $LHS -gt $RHS ];
 }
 
-nvm_version_greater_than_or_equal_to() {
+tnvm_version_greater_than_or_equal_to() {
   local LHS
-  LHS=$(nvm_normalize_version "$1")
+  LHS=$(tnvm_normalize_version "$1")
   local RHS
-  RHS=$(nvm_normalize_version "$2")
+  RHS=$(tnvm_normalize_version "$2")
   [ $LHS -ge $RHS ];
 }
 
-nvm_version_dir() {
+tnvm_version_dir() {
   local NVM_WHICH_DIR
   NVM_WHICH_DIR="$1"
   if [ -z "$NVM_WHICH_DIR" ] || [ "_$NVM_WHICH_DIR" = "_new" ]; then
@@ -159,45 +159,45 @@ nvm_version_dir() {
   fi
 }
 
-nvm_alias_path() {
-  echo "$(nvm_version_dir old)/alias"
+tnvm_alias_path() {
+  echo "$(tnvm_version_dir old)/alias"
 }
 
-nvm_version_path() {
+tnvm_version_path() {
   local VERSION
   VERSION="$1"
   if [ -z "$VERSION" ]; then
     echo "version is required" >&2
     return 3
-  elif nvm_is_iojs_version "$VERSION"; then
-    echo "$(nvm_version_dir iojs)/$(nvm_strip_iojs_prefix "$VERSION")"
-  elif nvm_version_greater 0.12.0 "$VERSION"; then
-    echo "$(nvm_version_dir old)/$VERSION"
+  elif tnvm_is_iojs_version "$VERSION"; then
+    echo "$(tnvm_version_dir iojs)/$(tnvm_strip_iojs_prefix "$VERSION")"
+  elif tnvm_version_greater 0.12.0 "$VERSION"; then
+    echo "$(tnvm_version_dir old)/$VERSION"
   else
-    echo "$(nvm_version_dir new)/$VERSION"
+    echo "$(tnvm_version_dir new)/$VERSION"
   fi
 }
 
-nvm_ensure_version_installed() {
+tnvm_ensure_version_installed() {
   local PROVIDED_VERSION
   PROVIDED_VERSION="$1"
   local LOCAL_VERSION
-  LOCAL_VERSION="$(nvm_version "$PROVIDED_VERSION")"
+  LOCAL_VERSION="$(tnvm_version "$PROVIDED_VERSION")"
   local NVM_VERSION_DIR
-  NVM_VERSION_DIR="$(nvm_version_path "$LOCAL_VERSION")"
+  NVM_VERSION_DIR="$(tnvm_version_path "$LOCAL_VERSION")"
   if [ ! -d "$NVM_VERSION_DIR" ]; then
-    VERSION="$(nvm_resolve_alias "$PROVIDED_VERSION")"
+    VERSION="$(tnvm_resolve_alias "$PROVIDED_VERSION")"
     if [ $? -eq 0 ]; then
       echo "N/A: version \"$PROVIDED_VERSION -> $VERSION\" is not yet installed" >&2
     else
-      echo "N/A: version \"$(nvm_ensure_version_prefix "$PROVIDED_VERSION")\" is not yet installed" >&2
+      echo "N/A: version \"$(tnvm_ensure_version_prefix "$PROVIDED_VERSION")\" is not yet installed" >&2
     fi
     return 1
   fi
 }
 
 # Expand a version using the version cache
-nvm_version() {
+tnvm_version() {
   local PATTERN
   PATTERN=$1
   local VERSION
@@ -207,18 +207,18 @@ nvm_version() {
   fi
 
   if [ "$PATTERN" = "current" ]; then
-    nvm_ls_current
+    tnvm_ls_current
     return $?
   fi
 
   local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(nvm_node_prefix)"
+  NVM_NODE_PREFIX="$(tnvm_node_prefix)"
   case "_$PATTERN" in
     "_$NVM_NODE_PREFIX" | "_$NVM_NODE_PREFIX-")
       PATTERN="stable"
     ;;
   esac
-  VERSION="$(nvm_ls "$PATTERN" | tail -n1)"
+  VERSION="$(tnvm_ls "$PATTERN" | tail -n1)"
   if [ -z "$VERSION" ] || [ "_$VERSION" = "_N/A" ]; then
     echo "N/A"
     return 3;
@@ -227,21 +227,21 @@ nvm_version() {
   fi
 }
 
-nvm_remote_version() {
+tnvm_remote_version() {
   local PATTERN
   PATTERN="$1"
   local VERSION
-  if nvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
+  if tnvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
     case "_$PATTERN" in
-      "_$(nvm_iojs_prefix)")
-        VERSION="$(nvm_ls_remote_iojs | tail -n1)"
+      "_$(tnvm_iojs_prefix)")
+        VERSION="$(tnvm_ls_remote_iojs | tail -n1)"
       ;;
       *)
-        VERSION="$(nvm_ls_remote "$PATTERN")"
+        VERSION="$(tnvm_ls_remote "$PATTERN")"
       ;;
     esac
   else
-    VERSION="$(nvm_remote_versions "$PATTERN" | tail -n1)"
+    VERSION="$(tnvm_remote_versions "$PATTERN" | tail -n1)"
   fi
   echo "$VERSION"
   if [ "_$VERSION" = '_N/A' ]; then
@@ -249,25 +249,25 @@ nvm_remote_version() {
   fi
 }
 
-nvm_remote_versions() {
+tnvm_remote_versions() {
   local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
   local PATTERN
   PATTERN="$1"
   case "_$PATTERN" in
     "_$NVM_IOJS_PREFIX" | "_io.js")
-      VERSIONS="$(nvm_ls_remote_iojs)"
+      VERSIONS="$(tnvm_ls_remote_iojs)"
     ;;
-    "_$(nvm_node_prefix)")
-      VERSIONS="$(nvm_ls_remote)"
+    "_$(tnvm_node_prefix)")
+      VERSIONS="$(tnvm_ls_remote)"
     ;;
     *)
-      if nvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
-        echo >&2 "Implicit aliases are not supported in nvm_remote_versions."
+      if tnvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
+        echo >&2 "Implicit aliases are not supported in tnvm_remote_versions."
         return 1
       fi
-      VERSIONS="$(echo "$(nvm_ls_remote "$PATTERN")
-$(nvm_ls_remote_iojs "$PATTERN")" | command grep -v "N/A" | command sed '/^$/d')"
+      VERSIONS="$(echo "$(tnvm_ls_remote "$PATTERN")
+$(tnvm_ls_remote_iojs "$PATTERN")" | command grep -v "N/A" | command sed '/^$/d')"
     ;;
   esac
 
@@ -279,47 +279,47 @@ $(nvm_ls_remote_iojs "$PATTERN")" | command grep -v "N/A" | command sed '/^$/d')
   fi
 }
 
-nvm_is_valid_version() {
-  if nvm_validate_implicit_alias "$1" 2> /dev/null; then
+tnvm_is_valid_version() {
+  if tnvm_validate_implicit_alias "$1" 2> /dev/null; then
     return 0
   fi
   case "$1" in
-    "$(nvm_iojs_prefix)" | "$(nvm_node_prefix)")
+    "$(tnvm_iojs_prefix)" | "$(tnvm_node_prefix)")
       return 0
     ;;
     *)
       local VERSION
-      VERSION="$(nvm_strip_iojs_prefix "$1")"
-      nvm_version_greater "$VERSION"
+      VERSION="$(tnvm_strip_iojs_prefix "$1")"
+      tnvm_version_greater "$VERSION"
     ;;
   esac
 }
 
-nvm_normalize_version() {
+tnvm_normalize_version() {
   echo "${1#v}" | command awk -F. '{ printf("%d%06d%06d\n", $1,$2,$3); }'
 }
 
-nvm_ensure_version_prefix() {
+tnvm_ensure_version_prefix() {
   local NVM_VERSION
-  NVM_VERSION="$(nvm_strip_iojs_prefix "$1" | command sed -e 's/^\([0-9]\)/v\1/g')"
-  if nvm_is_iojs_version "$1"; then
-    echo "$(nvm_add_iojs_prefix "$NVM_VERSION")"
+  NVM_VERSION="$(tnvm_strip_iojs_prefix "$1" | command sed -e 's/^\([0-9]\)/v\1/g')"
+  if tnvm_is_iojs_version "$1"; then
+    echo "$(tnvm_add_iojs_prefix "$NVM_VERSION")"
   else
     echo "$NVM_VERSION"
   fi
 }
 
-nvm_format_version() {
+tnvm_format_version() {
   local VERSION
-  VERSION="$(nvm_ensure_version_prefix "$1")"
-  if [ "_$(nvm_num_version_groups "$VERSION")" != "_3" ]; then
-    nvm_format_version "${VERSION%.}.0"
+  VERSION="$(tnvm_ensure_version_prefix "$1")"
+  if [ "_$(tnvm_num_version_groups "$VERSION")" != "_3" ]; then
+    tnvm_format_version "${VERSION%.}.0"
   else
     echo "$VERSION"
   fi
 }
 
-nvm_num_version_groups() {
+tnvm_num_version_groups() {
   local VERSION
   VERSION="$1"
   VERSION="${VERSION#v}"
@@ -335,7 +335,7 @@ nvm_num_version_groups() {
   echo "${#NVM_NUM_GROUPS}"
 }
 
-nvm_strip_path() {
+tnvm_strip_path() {
   echo "$1" | command sed \
     -e "s#$NVM_DIR/[^/]*$2[^:]*:##g" \
     -e "s#:$NVM_DIR/[^/]*$2[^:]*##g" \
@@ -345,7 +345,7 @@ nvm_strip_path() {
     -e "s#$NVM_DIR/ali_versions/[^/]*/[^/]*$2[^:]*##g"
 }
 
-nvm_prepend_path() {
+tnvm_prepend_path() {
   if [ -z "$1" ]; then
     echo "$2"
   else
@@ -353,14 +353,14 @@ nvm_prepend_path() {
   fi
 }
 
-nvm_binary_available() {
+tnvm_binary_available() {
   # binaries started with node 0.11.12
   local FIRST_VERSION_WITH_BINARY
   FIRST_VERSION_WITH_BINARY="0.11.12"
-  nvm_version_greater_than_or_equal_to "$(nvm_strip_iojs_prefix $1)" "$FIRST_VERSION_WITH_BINARY"
+  tnvm_version_greater_than_or_equal_to "$(tnvm_strip_iojs_prefix $1)" "$FIRST_VERSION_WITH_BINARY"
 }
 
-nvm_alias() {
+tnvm_alias() {
   local ALIAS
   ALIAS="$1"
   if [ -z "$ALIAS" ]; then
@@ -369,7 +369,7 @@ nvm_alias() {
   fi
 
   local NVM_ALIAS_PATH
-  NVM_ALIAS_PATH="$(nvm_alias_path)/$ALIAS"
+  NVM_ALIAS_PATH="$(tnvm_alias_path)/$ALIAS"
   if [ ! -f "$NVM_ALIAS_PATH" ]; then
     echo >&2 'Alias does not exist.'
     return 2
@@ -378,27 +378,23 @@ nvm_alias() {
   cat "$NVM_ALIAS_PATH"
 }
 
-nvm_ls_current() {
+tnvm_ls_current() {
   local NVM_LS_CURRENT_NODE_PATH
   NVM_LS_CURRENT_NODE_PATH="$(command which node 2> /dev/null)"
   if [ $? -ne 0 ]; then
     echo 'none'
-  elif nvm_tree_contains_path "$(nvm_version_dir iojs)" "$NVM_LS_CURRENT_NODE_PATH"; then
-    echo "$(nvm_add_iojs_prefix $(iojs --version 2>/dev/null))"
-  elif nvm_tree_contains_path "$NVM_DIR" "$NVM_LS_CURRENT_NODE_PATH"; then
+  elif tnvm_tree_contains_path "$(tnvm_version_dir iojs)" "$NVM_LS_CURRENT_NODE_PATH"; then
+    echo "$(ali-iojs $(iojs --version 2>/dev/null))"
+  elif tnvm_tree_contains_path "$NVM_DIR" "$NVM_LS_CURRENT_NODE_PATH"; then
     local VERSION
-    VERSION="$(node --version 2>/dev/null)"
-    if [ "$VERSION" = "v0.6.21-pre" ]; then
-      echo "v0.6.21"
-    else
-      echo "$VERSION"
-    fi
+    VERSION="(ali-node $(node --version 2>/dev/null))"
+    echo "$VERSION"
   else
     echo 'system'
   fi
 }
 
-nvm_resolve_alias() {
+tnvm_resolve_alias() {
   if [ -z "$1" ]; then
     return 1
   fi
@@ -413,7 +409,7 @@ nvm_resolve_alias() {
   local SEEN_ALIASES
   SEEN_ALIASES="$ALIAS"
   while true; do
-    ALIAS_TEMP="$(nvm_alias "$ALIAS" 2> /dev/null)"
+    ALIAS_TEMP="$(tnvm_alias "$ALIAS" 2> /dev/null)"
 
     if [ -z "$ALIAS_TEMP" ]; then
       break
@@ -431,9 +427,9 @@ nvm_resolve_alias() {
 
   if [ -n "$ALIAS" ] && [ "_$ALIAS" != "_$PATTERN" ]; then
     local NVM_IOJS_PREFIX
-    NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+    NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
     local NVM_NODE_PREFIX
-    NVM_NODE_PREFIX="$(nvm_node_prefix)"
+    NVM_NODE_PREFIX="$(tnvm_node_prefix)"
     case "_$ALIAS" in
       "_∞" | \
       "_$NVM_IOJS_PREFIX" | "_$NVM_IOJS_PREFIX-" | \
@@ -441,61 +437,61 @@ nvm_resolve_alias() {
         echo "$ALIAS"
       ;;
       *)
-        nvm_ensure_version_prefix "$ALIAS"
+        tnvm_ensure_version_prefix "$ALIAS"
       ;;
     esac
     return 0
   fi
 
-  if nvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
+  if tnvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
     local IMPLICIT
-    IMPLICIT="$(nvm_print_implicit_alias local "$PATTERN" 2> /dev/null)"
+    IMPLICIT="$(tnvm_print_implicit_alias local "$PATTERN" 2> /dev/null)"
     if [ -n "$IMPLICIT" ]; then
-      nvm_ensure_version_prefix "$IMPLICIT"
+      tnvm_ensure_version_prefix "$IMPLICIT"
     fi
   fi
 
   return 2
 }
 
-nvm_resolve_local_alias() {
+tnvm_resolve_local_alias() {
   if [ -z "$1" ]; then
     return 1
   fi
 
   local VERSION
   local EXIT_CODE
-  VERSION="$(nvm_resolve_alias "$1")"
+  VERSION="$(tnvm_resolve_alias "$1")"
   EXIT_CODE=$?
   if [ -z "$VERSION" ]; then
     return $EXIT_CODE
   fi
   if [ "_$VERSION" != "_∞" ]; then
-    nvm_version "$VERSION"
+    tnvm_version "$VERSION"
   else
     echo "$VERSION"
   fi
 }
 
-nvm_iojs_prefix() {
+tnvm_iojs_prefix() {
   echo "iojs"
 }
-nvm_node_prefix() {
+tnvm_node_prefix() {
   echo "node"
 }
 
-nvm_is_iojs_version() {
+tnvm_is_iojs_version() {
   case "$1" in iojs-*) return 0 ;; esac
   return 1
 }
 
-nvm_add_iojs_prefix() {
-  command echo "$(nvm_iojs_prefix)-$(nvm_ensure_version_prefix "$(nvm_strip_iojs_prefix "$1")")"
+tnvm_add_iojs_prefix() {
+  command echo "$(tnvm_iojs_prefix)-$(tnvm_ensure_version_prefix "$(tnvm_strip_iojs_prefix "$1")")"
 }
 
-nvm_strip_iojs_prefix() {
+tnvm_strip_iojs_prefix() {
   local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
   if [ "_$1" = "_$NVM_IOJS_PREFIX" ]; then
     echo
   else
@@ -503,36 +499,36 @@ nvm_strip_iojs_prefix() {
   fi
 }
 
-nvm_ls() {
+tnvm_ls() {
   local PATTERN
   PATTERN="$1"
   local VERSIONS
   VERSIONS=''
   if [ "$PATTERN" = 'current' ]; then
-    nvm_ls_current
+    tnvm_ls_current
     return
   fi
 
   local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
   local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(nvm_node_prefix)"
+  NVM_NODE_PREFIX="$(tnvm_node_prefix)"
   local NVM_VERSION_DIR_IOJS
-  NVM_VERSION_DIR_IOJS="$(nvm_version_dir iojs)"
+  NVM_VERSION_DIR_IOJS="$(tnvm_version_dir iojs)"
   local NVM_VERSION_DIR_NEW
-  NVM_VERSION_DIR_NEW="$(nvm_version_dir new)"
+  NVM_VERSION_DIR_NEW="$(tnvm_version_dir new)"
   local NVM_VERSION_DIR_OLD
-  NVM_VERSION_DIR_OLD="$(nvm_version_dir old)"
+  NVM_VERSION_DIR_OLD="$(tnvm_version_dir old)"
 
   case "$PATTERN" in
     "$NVM_IOJS_PREFIX" | "$NVM_NODE_PREFIX" )
       PATTERN="$PATTERN-"
     ;;
     *)
-      if nvm_resolve_local_alias "$PATTERN"; then
+      if tnvm_resolve_local_alias "$PATTERN"; then
         return
       fi
-      PATTERN=$(nvm_ensure_version_prefix $PATTERN)
+      PATTERN=$(tnvm_ensure_version_prefix $PATTERN)
     ;;
   esac
   # If it looks like an explicit version, don't do anything funny
@@ -541,18 +537,18 @@ nvm_ls() {
     v*) NVM_PATTERN_STARTS_WITH_V=true ;;
     *) NVM_PATTERN_STARTS_WITH_V=false ;;
   esac
-  if [ $NVM_PATTERN_STARTS_WITH_V = true ] && [ "_$(nvm_num_version_groups "$PATTERN")" = "_3" ]; then
-    if [ -d "$(nvm_version_path "$PATTERN")" ]; then
+  if [ $NVM_PATTERN_STARTS_WITH_V = true ] && [ "_$(tnvm_num_version_groups "$PATTERN")" = "_3" ]; then
+    if [ -d "$(tnvm_version_path "$PATTERN")" ]; then
       VERSIONS="$PATTERN"
-    elif [ -d "$(nvm_version_path "$(nvm_add_iojs_prefix "$PATTERN")")" ]; then
-      VERSIONS="$(nvm_add_iojs_prefix "$PATTERN")"
+    elif [ -d "$(tnvm_version_path "$(tnvm_add_iojs_prefix "$PATTERN")")" ]; then
+      VERSIONS="$(tnvm_add_iojs_prefix "$PATTERN")"
     fi
   else
     case "$PATTERN" in
       "$NVM_IOJS_PREFIX-" | "$NVM_NODE_PREFIX-" | "system") ;;
       *)
         local NUM_VERSION_GROUPS
-        NUM_VERSION_GROUPS="$(nvm_num_version_groups "$PATTERN")"
+        NUM_VERSION_GROUPS="$(tnvm_num_version_groups "$PATTERN")"
         if [ "_$NUM_VERSION_GROUPS" = "_2" ] || [ "_$NUM_VERSION_GROUPS" = "_1" ]; then
           PATTERN="${PATTERN%.}."
         fi
@@ -561,7 +557,7 @@ nvm_ls() {
 
     local ZHS_HAS_SHWORDSPLIT_UNSET
     ZHS_HAS_SHWORDSPLIT_UNSET=1
-    if nvm_has "setopt"; then
+    if tnvm_has "setopt"; then
       ZHS_HAS_SHWORDSPLIT_UNSET=$(setopt | command grep shwordsplit > /dev/null ; echo $?)
       setopt shwordsplit
     fi
@@ -570,21 +566,21 @@ nvm_ls() {
     local NVM_DIRS_TO_SEARCH
     local NVM_ADD_SYSTEM
     NVM_ADD_SYSTEM=false
-    if nvm_is_iojs_version "$PATTERN"; then
+    if tnvm_is_iojs_version "$PATTERN"; then
       NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_IOJS"
-      PATTERN="$(nvm_strip_iojs_prefix "$PATTERN")"
-      if nvm_has_system_iojs; then
+      PATTERN="$(tnvm_strip_iojs_prefix "$PATTERN")"
+      if tnvm_has_system_iojs; then
         NVM_ADD_SYSTEM=true
       fi
     elif [ "_$PATTERN" = "_$NVM_NODE_PREFIX-" ]; then
       NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW"
       PATTERN=''
-      if nvm_has_system_node; then
+      if tnvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
     else
       NVM_DIRS_TO_TEST_AND_SEARCH="$NVM_VERSION_DIR_OLD $NVM_VERSION_DIR_NEW $NVM_VERSION_DIR_IOJS"
-      if nvm_has_system_iojs || nvm_has_system_node; then
+      if tnvm_has_system_iojs || tnvm_has_system_node; then
         NVM_ADD_SYSTEM=true
       fi
     fi
@@ -615,7 +611,7 @@ nvm_ls() {
             s/^$NVM_NODE_PREFIX\.//")"
     fi
 
-    if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
+    if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && tnvm_has "unsetopt"; then
       unsetopt shwordsplit
     fi
   fi
@@ -636,20 +632,20 @@ nvm_ls() {
   echo "$VERSIONS"
 }
 
-nvm_ls_remote() {
+tnvm_ls_remote() {
   local PATTERN
   PATTERN="$1"
   local VERSIONS
   local GREP_OPTIONS
   GREP_OPTIONS=''
-  if nvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
-    PATTERN="$(nvm_ls_remote "$(nvm_print_implicit_alias remote "$PATTERN")" | tail -n1)"
+  if tnvm_validate_implicit_alias "$PATTERN" 2> /dev/null ; then
+    PATTERN="$(tnvm_ls_remote "$(tnvm_print_implicit_alias remote "$PATTERN")" | tail -n1)"
   elif [ -n "$PATTERN" ]; then
-    PATTERN="$(nvm_ensure_version_prefix "$PATTERN")"
+    PATTERN="$(tnvm_ensure_version_prefix "$PATTERN")"
   else
     PATTERN=".*"
   fi
-  VERSIONS=`nvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/ -o - \
+  VERSIONS=`tnvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/ -o - \
               | \egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+' \
               | command grep -w "${PATTERN}" \
               | sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n`
@@ -660,19 +656,19 @@ nvm_ls_remote() {
   echo "$VERSIONS"
 }
 
-nvm_ls_remote_iojs() {
+tnvm_ls_remote_iojs() {
   local PATTERN
   PATTERN="$1"
   local VERSIONS
   if [ -n "$PATTERN" ]; then
-    PATTERN="$(nvm_ensure_version_prefix $(nvm_strip_iojs_prefix "$PATTERN"))"
+    PATTERN="$(tnvm_ensure_version_prefix $(tnvm_strip_iojs_prefix "$PATTERN"))"
   else
     PATTERN=".*"
   fi
-  VERSIONS=`nvm_download -L -s $TNVM_IOJS_ORG_MIRROR/ -o - \
+  VERSIONS=`tnvm_download -L -s $TNVM_IOJS_ORG_MIRROR/ -o - \
               | \egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+' \
               | command grep -w "${PATTERN}" \
-              | command sed "s/^/$(nvm_iojs_prefix)-/" \
+              | command sed "s/^/$(tnvm_iojs_prefix)-/" \
               | sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n`
   if [ -z "$VERSIONS" ]; then
     echo "N/A"
@@ -681,13 +677,13 @@ nvm_ls_remote_iojs() {
   echo "$VERSIONS"
 }
 
-nvm_checksum() {
+tnvm_checksum() {
   local NVM_CHECKSUM
-  if nvm_has "sha1sum" && ! nvm_is_alias "sha1sum"; then
+  if tnvm_has "sha1sum" && ! tnvm_is_alias "sha1sum"; then
     NVM_CHECKSUM="$(command sha1sum "$1" | command awk '{print $1}')"
-  elif nvm_has "sha1" && ! nvm_is_alias "sha1"; then
+  elif tnvm_has "sha1" && ! tnvm_is_alias "sha1"; then
     NVM_CHECKSUM="$(command sha1 -q "$1")"
-  elif nvm_has "shasum" && ! nvm_is_alias "shasum"; then
+  elif tnvm_has "shasum" && ! tnvm_is_alias "shasum"; then
     NVM_CHECKSUM="$(shasum "$1" | command awk '{print $1}')"
   else
     echo "Unaliased sha1sum, sha1, or shasum not found." >&2
@@ -705,17 +701,17 @@ nvm_checksum() {
   fi
 }
 
-nvm_print_versions() {
+tnvm_print_versions() {
   local VERSION
   local FORMAT
   local NVM_CURRENT
-  NVM_CURRENT=$(nvm_ls_current)
+  NVM_CURRENT=$(tnvm_ls_current)
   echo "$1" | while read VERSION; do
     if [ "_$VERSION" = "_$NVM_CURRENT" ]; then
       FORMAT='\033[0;32m-> %12s\033[0m'
     elif [ "$VERSION" = "system" ]; then
       FORMAT='\033[0;33m%15s\033[0m'
-    elif [ -d "$(nvm_version_path "$VERSION" 2> /dev/null)" ]; then
+    elif [ -d "$(tnvm_version_path "$VERSION" 2> /dev/null)" ]; then
       FORMAT='\033[0;34m%15s\033[0m'
     else
       FORMAT='%15s'
@@ -724,11 +720,11 @@ nvm_print_versions() {
   done
 }
 
-nvm_validate_implicit_alias() {
+tnvm_validate_implicit_alias() {
   local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
   local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(nvm_node_prefix)"
+  NVM_NODE_PREFIX="$(tnvm_node_prefix)"
 
   case "$1" in
     "stable" | "unstable" | "$NVM_IOJS_PREFIX" | "$NVM_NODE_PREFIX" )
@@ -741,33 +737,33 @@ nvm_validate_implicit_alias() {
   esac
 }
 
-nvm_print_implicit_alias() {
+tnvm_print_implicit_alias() {
   if [ "_$1" != "_local" ] && [ "_$1" != "_remote" ]; then
-    echo "nvm_print_implicit_alias must be specified with local or remote as the first argument." >&2
+    echo "tnvm_print_implicit_alias must be specified with local or remote as the first argument." >&2
     return 1
   fi
 
-  if ! nvm_validate_implicit_alias "$2"; then
+  if ! tnvm_validate_implicit_alias "$2"; then
     return 2
   fi
 
   local ZHS_HAS_SHWORDSPLIT_UNSET
 
   local NVM_IOJS_PREFIX
-  NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+  NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
   local NVM_NODE_PREFIX
-  NVM_NODE_PREFIX="$(nvm_node_prefix)"
+  NVM_NODE_PREFIX="$(tnvm_node_prefix)"
   local NVM_COMMAND
   local LAST_TWO
   case "$2" in
     "$NVM_IOJS_PREFIX")
-      NVM_COMMAND="nvm_ls_remote_iojs"
+      NVM_COMMAND="tnvm_ls_remote_iojs"
       if [ "_$1" = "_local" ]; then
-        NVM_COMMAND="nvm_ls iojs"
+        NVM_COMMAND="tnvm_ls iojs"
       fi
 
       ZHS_HAS_SHWORDSPLIT_UNSET=1
-      if nvm_has "setopt"; then
+      if tnvm_has "setopt"; then
         ZHS_HAS_SHWORDSPLIT_UNSET=$(setopt | command grep shwordsplit > /dev/null ; echo $?)
         setopt shwordsplit
       fi
@@ -777,11 +773,11 @@ nvm_print_implicit_alias() {
       local EXIT_CODE
       EXIT_CODE="$?"
 
-      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
+      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && tnvm_has "unsetopt"; then
         unsetopt shwordsplit
       fi
 
-      echo "$(nvm_add_iojs_prefix "$NVM_IOJS_VERSION")"
+      echo "$(tnvm_add_iojs_prefix "$NVM_IOJS_VERSION")"
       return $EXIT_CODE
     ;;
     "$NVM_NODE_PREFIX")
@@ -789,20 +785,20 @@ nvm_print_implicit_alias() {
       return
     ;;
     *)
-      NVM_COMMAND="nvm_ls_remote"
+      NVM_COMMAND="tnvm_ls_remote"
       if [ "_$1" = "_local" ]; then
-        NVM_COMMAND="nvm_ls node"
+        NVM_COMMAND="tnvm_ls node"
       fi
 
       ZHS_HAS_SHWORDSPLIT_UNSET=1
-      if nvm_has "setopt"; then
+      if tnvm_has "setopt"; then
         ZHS_HAS_SHWORDSPLIT_UNSET=$(setopt | command grep shwordsplit > /dev/null ; echo $?)
         setopt shwordsplit
       fi
 
       LAST_TWO=$($NVM_COMMAND | command grep -e '^v' | cut -c2- | cut -d . -f 1,2 | uniq)
 
-      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
+      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && tnvm_has "unsetopt"; then
         unsetopt shwordsplit
       fi
     ;;
@@ -813,19 +809,19 @@ nvm_print_implicit_alias() {
   local MOD
 
   ZHS_HAS_SHWORDSPLIT_UNSET=1
-  if nvm_has "setopt"; then
+  if tnvm_has "setopt"; then
     ZHS_HAS_SHWORDSPLIT_UNSET=$(setopt | command grep shwordsplit > /dev/null ; echo $?)
     setopt shwordsplit
   fi
   for MINOR in $LAST_TWO; do
-    MOD=$(expr "$(nvm_normalize_version "$MINOR")" \/ 1000000 \% 2)
+    MOD=$(expr "$(tnvm_normalize_version "$MINOR")" \/ 1000000 \% 2)
     if [ $MOD -eq 0 ]; then
       STABLE="$MINOR"
     elif [ $MOD -eq 1 ]; then
       UNSTABLE="$MINOR"
     fi
   done
-  if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
+  if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && tnvm_has "unsetopt"; then
     unsetopt shwordsplit
   fi
 
@@ -836,7 +832,7 @@ nvm_print_implicit_alias() {
   fi
 }
 
-nvm_get_os() {
+tnvm_get_os() {
   local NVM_UNAME
   NVM_UNAME="$(uname -a)"
   local NVM_OS
@@ -849,7 +845,7 @@ nvm_get_os() {
   echo "$NVM_OS"
 }
 
-nvm_get_arch() {
+tnvm_get_arch() {
   local NVM_UNAME
   NVM_UNAME="$(uname -m)"
   local NVM_ARCH
@@ -861,14 +857,14 @@ nvm_get_arch() {
   echo "$NVM_ARCH"
 }
 
-nvm_ensure_default_set() {
+tnvm_ensure_default_set() {
   local VERSION
   VERSION="$1"
   if [ -z "$VERSION" ]; then
-    echo 'nvm_ensure_default_set: a version is required' >&2
+    echo 'tnvm_ensure_default_set: a version is required' >&2
     return 1
   fi
-  if nvm_alias default >/dev/null 2>&1; then
+  if tnvm_alias default >/dev/null 2>&1; then
     # default already set
     return 0
   fi
@@ -880,39 +876,39 @@ nvm_ensure_default_set() {
   return $EXIT_CODE
 }
 
-nvm_install_iojs_binary() {
+tnvm_install_iojs_binary() {
   local PREFIXED_VERSION
   PREFIXED_VERSION="$1"
   local REINSTALL_PACKAGES_FROM
   REINSTALL_PACKAGES_FROM="$2"
 
-  if ! nvm_is_iojs_version "$PREFIXED_VERSION"; then
-    echo 'nvm_install_iojs_binary requires an iojs-prefixed version.' >&2
+  if ! tnvm_is_iojs_version "$PREFIXED_VERSION"; then
+    echo 'tnvm_install_iojs_binary requires an iojs-prefixed version.' >&2
     return 10
   fi
 
   local VERSION
-  VERSION="$(nvm_strip_iojs_prefix "$PREFIXED_VERSION")"
+  VERSION="$(tnvm_strip_iojs_prefix "$PREFIXED_VERSION")"
   local VERSION_PATH
-  VERSION_PATH="$(nvm_version_path "$PREFIXED_VERSION")"
+  VERSION_PATH="$(tnvm_version_path "$PREFIXED_VERSION")"
   local NVM_OS
-  NVM_OS="$(nvm_get_os)"
+  NVM_OS="$(tnvm_get_os)"
   local t
   local url
   local sum
 
   if [ -n "$NVM_OS" ]; then
-    if nvm_binary_available "$VERSION"; then
-      t="$VERSION-$NVM_OS-$(nvm_get_arch)"
-      url="$TNVM_IOJS_ORG_MIRROR/$VERSION/$(nvm_iojs_prefix)-${t}.tar.gz"
-      sum="$(nvm_download -L -s $TNVM_IOJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep $(nvm_iojs_prefix)-${t}.tar.gz | command awk '{print $1}')"
+    if tnvm_binary_available "$VERSION"; then
+      t="$VERSION-$NVM_OS-$(tnvm_get_arch)"
+      url="$TNVM_IOJS_ORG_MIRROR/$VERSION/$(tnvm_iojs_prefix)-${t}.tar.gz"
+      sum="$(tnvm_download -L -s $TNVM_IOJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep $(tnvm_iojs_prefix)-${t}.tar.gz | command awk '{print $1}')"
       local tmpdir
       tmpdir="$NVM_DIR/bin/iojs-${t}"
       local tmptarball
       tmptarball="$tmpdir/iojs-${t}.tar.gz"
       local NVM_INSTALL_ERRORED
       command mkdir -p "$tmpdir" && \
-        nvm_download -L -C - --progress-bar $url -o "$tmptarball" || \
+        tnvm_download -L -C - --progress-bar $url -o "$tmptarball" || \
         NVM_INSTALL_ERRORED=true
       if grep '404 Not Found' "$tmptarball" >/dev/null; then
         NVM_INSTALL_ERRORED=true
@@ -920,7 +916,7 @@ nvm_install_iojs_binary() {
       fi
       if (
         [ "$NVM_INSTALL_ERRORED" != true ] && \
-        nvm_checksum "$tmptarball" $sum && \
+        tnvm_checksum "$tmptarball" $sum && \
         command tar -xzf "$tmptarball" -C "$tmpdir" --strip-components 1 && \
         command rm -f "$tmptarball" && \
         command mkdir -p "$VERSION_PATH" && \
@@ -937,42 +933,42 @@ nvm_install_iojs_binary() {
   return 2
 }
 
-nvm_install_node_binary() {
+tnvm_install_node_binary() {
   local VERSION
   VERSION="$1"
   local REINSTALL_PACKAGES_FROM
   REINSTALL_PACKAGES_FROM="$2"
 
-  if nvm_is_iojs_version "$PREFIXED_VERSION"; then
-    echo 'nvm_install_node_binary does not allow an iojs-prefixed version.' >&2
+  if tnvm_is_iojs_version "$PREFIXED_VERSION"; then
+    echo 'tnvm_install_node_binary does not allow an iojs-prefixed version.' >&2
     return 10
   fi
 
   local VERSION_PATH
-  VERSION_PATH="$(nvm_version_path "$VERSION")"
+  VERSION_PATH="$(tnvm_version_path "$VERSION")"
   local NVM_OS
-  NVM_OS="$(nvm_get_os)"
+  NVM_OS="$(tnvm_get_os)"
   local t
   local url
   local sum
 
   if [ -n "$NVM_OS" ]; then
-    if nvm_binary_available "$VERSION"; then
+    if tnvm_binary_available "$VERSION"; then
       local NVM_ARCH
-      NVM_ARCH="$(nvm_get_arch)"
+      NVM_ARCH="$(tnvm_get_arch)"
       if [ $NVM_ARCH = "armv6l" ] || [ $NVM_ARCH = "armv7l" ]; then
          NVM_ARCH="arm-pi"
       fi
       t="$VERSION-$NVM_OS-$NVM_ARCH"
       url="$TNVM_NODEJS_ORG_MIRROR/$VERSION/node-${t}.tar.gz"
-      sum=`nvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep node-${t}.tar.gz | command awk '{print $1}'`
+      sum=`tnvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep node-${t}.tar.gz | command awk '{print $1}'`
       local tmpdir
       tmpdir="$NVM_DIR/bin/node-${t}"
       local tmptarball
       tmptarball="$tmpdir/node-${t}.tar.gz"
       local NVM_INSTALL_ERRORED
       command mkdir -p "$tmpdir" && \
-        nvm_download -L -C - --progress-bar $url -o "$tmptarball" || \
+        tnvm_download -L -C - --progress-bar $url -o "$tmptarball" || \
         NVM_INSTALL_ERRORED=true
       if grep '404 Not Found' "$tmptarball" >/dev/null; then
         NVM_INSTALL_ERRORED=true
@@ -980,7 +976,7 @@ nvm_install_node_binary() {
       fi
       if (
         [ "$NVM_INSTALL_ERRORED" != true ] && \
-        nvm_checksum "$tmptarball" $sum && \
+        tnvm_checksum "$tmptarball" $sum && \
         command tar -xzf "$tmptarball" -C "$tmpdir" --strip-components 1 && \
         command rm -f "$tmptarball" && \
         command mkdir -p "$VERSION_PATH" && \
@@ -997,7 +993,7 @@ nvm_install_node_binary() {
   return 2
 }
 
-nvm_install_node_source() {
+tnvm_install_node_source() {
   local VERSION
   VERSION="$1"
   local ADDITIONAL_PARAMETERS
@@ -1008,9 +1004,9 @@ nvm_install_node_source() {
   fi
 
   local VERSION_PATH
-  VERSION_PATH="$(nvm_version_path "$VERSION")"
+  VERSION_PATH="$(tnvm_version_path "$VERSION")"
   local NVM_OS
-  NVM_OS="$(nvm_get_os)"
+  NVM_OS="$(tnvm_get_os)"
 
   local tarball
   tarball=''
@@ -1027,18 +1023,18 @@ nvm_install_node_source() {
   local tmptarball
   tmptarball="$tmpdir/node-$VERSION.tar.gz"
 
-  if [ "`nvm_download -L -s -I "$TNVM_NODEJS_ORG_MIRROR/$VERSION/node-$VERSION.tar.gz" -o - 2>&1 | command grep '200 OK'`" != '' ]; then
+  if [ "`tnvm_download -L -s -I "$TNVM_NODEJS_ORG_MIRROR/$VERSION/node-$VERSION.tar.gz" -o - 2>&1 | command grep '200 OK'`" != '' ]; then
     tarball="$TNVM_NODEJS_ORG_MIRROR/$VERSION/node-$VERSION.tar.gz"
-    sum=`nvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep "node-$VERSION.tar.gz" | command awk '{print $1}'`
-  elif [ "`nvm_download -L -s -I "$TNVM_NODEJS_ORG_MIRROR/node-$VERSION.tar.gz" -o - | command grep '200 OK'`" != '' ]; then
+    sum=`tnvm_download -L -s $TNVM_NODEJS_ORG_MIRROR/$VERSION/SHASUMS.txt -o - | command grep "node-$VERSION.tar.gz" | command awk '{print $1}'`
+  elif [ "`tnvm_download -L -s -I "$TNVM_NODEJS_ORG_MIRROR/node-$VERSION.tar.gz" -o - | command grep '200 OK'`" != '' ]; then
     tarball="$TNVM_NODEJS_ORG_MIRROR/node-$VERSION.tar.gz"
   fi
 
   if (
     [ -n "$tarball" ] && \
     command mkdir -p "$tmpdir" && \
-    nvm_download -L --progress-bar $tarball -o "$tmptarball" && \
-    nvm_checksum "$tmptarball" $sum && \
+    tnvm_download -L --progress-bar $tarball -o "$tmptarball" && \
+    tnvm_checksum "$tmptarball" $sum && \
     command tar -xzf "$tmptarball" -C "$tmpdir" && \
     cd "$tmpdir/node-$VERSION" && \
     ./configure --prefix="$VERSION_PATH" $ADDITIONAL_PARAMETERS && \
@@ -1047,22 +1043,22 @@ nvm_install_node_source() {
     $make $MAKE_CXX install
     )
   then
-    if ! nvm_has "npm" ; then
+    if ! tnvm_has "npm" ; then
       echo "Installing npm..."
-      if nvm_version_greater 0.2.0 "$VERSION"; then
+      if tnvm_version_greater 0.2.0 "$VERSION"; then
         echo "npm requires node v0.2.3 or higher" >&2
-      elif nvm_version_greater_than_or_equal_to "$VERSION" 0.2.0; then
-        if nvm_version_greater 0.2.3 "$VERSION"; then
+      elif tnvm_version_greater_than_or_equal_to "$VERSION" 0.2.0; then
+        if tnvm_version_greater 0.2.3 "$VERSION"; then
           echo "npm requires node v0.2.3 or higher" >&2
         else
-          nvm_download -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
+          tnvm_download -L https://npmjs.org/install.sh -o - | clean=yes npm_install=0.2.19 sh
         fi
       else
-        nvm_download -L https://npmjs.org/install.sh -o - | clean=yes sh
+        tnvm_download -L https://npmjs.org/install.sh -o - | clean=yes sh
       fi
     fi
   else
-    echo "nvm: install $VERSION failed!" >&2
+    echo "tnvm: install $VERSION failed!" >&2
     return 1
   fi
 
@@ -1090,8 +1086,8 @@ tnvm() {
       echo
       echo "Usage:"
       echo "  tnvm help                              Show this message"
-      echo "  tnvm --version                         Print out the latest released version of nvm"
-      echo "  tnvm install [-s] <version>            Download and install a <version>, [-s] from source. Uses .nvmrc if available"
+      echo "  tnvm --version                         Print out the latest released version of tnvm"
+      echo "  tnvm install <version>            Download and install a <version>"
       echo "  tnvm uninstall <version>               Uninstall a version"
       echo "  tnvm use <version>                     Modify PATH to use <version>. Uses .nvmrc if available"
       echo "  tnvm run <version> [<args>]            Run <version> with <args> as arguments. Uses .nvmrc if available for <version>"
@@ -1103,7 +1099,6 @@ tnvm() {
       echo "  tnvm alias [<pattern>]                 Show all aliases beginning with <pattern>"
       echo "  tnvm alias <name> <version>            Set an alias named <name> pointing to <version>"
       echo "  tnvm unalias <name>                    Deletes the alias named <name>"
-      echo "  tnvm reinstall-packages <version>      Reinstall global \`npm\` packages contained in <version> to current version"
       echo "  tnvm unload                            Unload \`nvm\` from shell"
       echo "  tnvm which [<version>]                 Display path to installed node version. Uses .nvmrc if available"
       echo
@@ -1115,7 +1110,7 @@ tnvm() {
       echo "  tnvm alias default 0.10.32             Set default node version on a shell"
       echo
       echo "Note:"
-      echo "  to remove, delete, or uninstall tnvm - just remove ~/.nvm, ~/.npm, and ~/.bower folders"
+      echo "  to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders"
       echo
     ;;
 
@@ -1136,20 +1131,17 @@ tnvm() {
       version_not_provided=0
       local provided_version
       local NVM_OS
-      NVM_OS="$(nvm_get_os)"
+      NVM_OS="$(tnvm_get_os)"
 
-      if ! nvm_has "curl" && ! nvm_has "wget"; then
+      if ! tnvm_has "curl" && ! tnvm_has "wget"; then
         echo 'nvm needs curl or wget to proceed.' >&2;
         return 1
       fi
 
       if [ $# -lt 2 ]; then
         version_not_provided=1
-        nvm_rc_version
-        if [ -z "$TNVM_RC_VERSION" ]; then
-          >&2 tnvm help
-          return 127
-        fi
+        >&2 tnvm help
+        return 127
       fi
 
       shift
@@ -1164,17 +1156,17 @@ tnvm() {
 
       if [ -z "$provided_version" ]; then
         if [ $version_not_provided -ne 1 ]; then
-          nvm_rc_version
+          tnvm_rc_version
         fi
         provided_version="$TNVM_RC_VERSION"
       else
         shift
       fi
 
-      VERSION="$(nvm_remote_version "$provided_version")"
+      VERSION="$(tnvm_remote_version "$provided_version")"
 
       if [ "_$VERSION" = "_N/A" ]; then
-        echo "Version '$provided_version' not found - try \`nvm ls-remote\` to browse available versions." >&2
+        echo "Version '$provided_version' not found - try \`tnvm ls-remote\` to browse available versions." >&2
         return 3
       fi
 
@@ -1187,11 +1179,11 @@ tnvm() {
         case "$1" in
           --reinstall-packages-from=*)
             PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 27-)"
-            REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
+            REINSTALL_PACKAGES_FROM="$(tnvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
           ;;
           --copy-packages-from=*)
             PROVIDED_REINSTALL_PACKAGES_FROM="$(echo "$1" | command cut -c 22-)"
-            REINSTALL_PACKAGES_FROM="$(nvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
+            REINSTALL_PACKAGES_FROM="$(tnvm_version "$PROVIDED_REINSTALL_PACKAGES_FROM")"
           ;;
           *)
             ADDITIONAL_PARAMETERS="$ADDITIONAL_PARAMETERS $1"
@@ -1200,7 +1192,7 @@ tnvm() {
         shift
       done
 
-      if [ "_$(nvm_ensure_version_prefix "$PROVIDED_REINSTALL_PACKAGES_FROM")" = "_$VERSION" ]; then
+      if [ "_$(tnvm_ensure_version_prefix "$PROVIDED_REINSTALL_PACKAGES_FROM")" = "_$VERSION" ]; then
         echo "You can't reinstall global packages from the same version of node you're installing." >&2
         return 4
       elif [ ! -z "$PROVIDED_REINSTALL_PACKAGES_FROM" ] && [ "_$REINSTALL_PACKAGES_FROM" = "_N/A" ]; then
@@ -1209,12 +1201,12 @@ tnvm() {
       fi
 
       local NVM_IOJS
-      if nvm_is_iojs_version "$VERSION"; then
+      if tnvm_is_iojs_version "$VERSION"; then
         NVM_IOJS=true
       fi
 
       local VERSION_PATH
-      VERSION_PATH="$(nvm_version_path "$VERSION")"
+      VERSION_PATH="$(tnvm_version_path "$VERSION")"
       if [ -d "$VERSION_PATH" ]; then
         echo "$VERSION is already installed." >&2
         if tnvm use "$VERSION" && [ ! -z "$REINSTALL_PACKAGES_FROM" ] && [ "_$REINSTALL_PACKAGES_FROM" != "_N/A" ]; then
@@ -1232,19 +1224,19 @@ tnvm() {
       fi
       local NVM_INSTALL_SUCCESS
       # skip binary install if "nobinary" option specified.
-      if [ $nobinary -ne 1 ] && nvm_binary_available "$VERSION"; then
-        if [ "$NVM_IOJS" = true ] && nvm_install_iojs_binary "$VERSION" "$REINSTALL_PACKAGES_FROM"; then
+      if [ $nobinary -ne 1 ] && tnvm_binary_available "$VERSION"; then
+        if [ "$NVM_IOJS" = true ] && tnvm_install_iojs_binary "$VERSION" "$REINSTALL_PACKAGES_FROM"; then
           NVM_INSTALL_SUCCESS=true
-        elif [ "$NVM_IOJS" != true ] && nvm_install_node_binary "$VERSION" "$REINSTALL_PACKAGES_FROM"; then
+        elif [ "$NVM_IOJS" != true ] && tnvm_install_node_binary "$VERSION" "$REINSTALL_PACKAGES_FROM"; then
           NVM_INSTALL_SUCCESS=true
         fi
       fi
       if [ "$NVM_INSTALL_SUCCESS" != true ]; then
         if [ "$NVM_IOJS" = true ]; then
-          # nvm_install_iojs_source "$VERSION" "$ADDITIONAL_PARAMETERS"
+          # tnvm_install_iojs_source "$VERSION" "$ADDITIONAL_PARAMETERS"
           echo "Installing iojs from source is not currently supported" >&2
           return 105
-        elif nvm_install_node_source "$VERSION" "$ADDITIONAL_PARAMETERS"; then
+        elif tnvm_install_node_source "$VERSION" "$ADDITIONAL_PARAMETERS"; then
           NVM_INSTALL_SUCCESS=true
         fi
       fi
@@ -1266,16 +1258,16 @@ tnvm() {
       local PATTERN
       PATTERN="$2"
       case "_$PATTERN" in
-        "_$(nvm_iojs_prefix)" | "_$(nvm_iojs_prefix)-" \
-        | "_$(nvm_node_prefix)" | "_$(nvm_node_prefix)-")
-          VERSION="$(nvm_version "$PATTERN")"
+        "_$(tnvm_iojs_prefix)" | "_$(tnvm_iojs_prefix)-" \
+        | "_$(tnvm_node_prefix)" | "_$(tnvm_node_prefix)-")
+          VERSION="$(tnvm_version "$PATTERN")"
         ;;
         *)
-          VERSION="$(nvm_version "$PATTERN")"
+          VERSION="$(tnvm_version "$PATTERN")"
         ;;
       esac
-      if [ "_$VERSION" = "_$(nvm_ls_current)" ]; then
-        if nvm_is_iojs_version "$VERSION"; then
+      if [ "_$VERSION" = "_$(tnvm_ls_current)" ]; then
+        if tnvm_is_iojs_version "$VERSION"; then
           echo "tnvm: Cannot uninstall currently-active io.js version, $VERSION (inferred from $PATTERN)." >&2
         else
           echo "tnvm: Cannot uninstall currently-active node version, $VERSION (inferred from $PATTERN)." >&2
@@ -1284,21 +1276,21 @@ tnvm() {
       fi
 
       local VERSION_PATH
-      VERSION_PATH="$(nvm_version_path "$VERSION")"
+      VERSION_PATH="$(tnvm_version_path "$VERSION")"
       if [ ! -d "$VERSION_PATH" ]; then
         echo "$VERSION version is not installed..." >&2
         return;
       fi
 
-      t="$VERSION-$(nvm_get_os)-$(nvm_get_arch)"
+      t="$VERSION-$(tnvm_get_os)-$(tnvm_get_arch)"
 
       local NVM_PREFIX
       local NVM_SUCCESS_MSG
-      if nvm_is_iojs_version "$VERSION"; then
-        NVM_PREFIX="$(nvm_iojs_prefix)"
-        NVM_SUCCESS_MSG="Uninstalled io.js $(nvm_strip_iojs_prefix $VERSION)"
+      if tnvm_is_iojs_version "$VERSION"; then
+        NVM_PREFIX="$(tnvm_iojs_prefix)"
+        NVM_SUCCESS_MSG="Uninstalled io.js $(tnvm_strip_iojs_prefix $VERSION)"
       else
-        NVM_PREFIX="$(nvm_node_prefix)"
+        NVM_PREFIX="$(tnvm_node_prefix)"
         NVM_SUCCESS_MSG="Uninstalled node $VERSION"
       fi
       # Delete all files related to target version.
@@ -1310,14 +1302,14 @@ tnvm() {
       echo "$NVM_SUCCESS_MSG"
 
       # rm any aliases that point to uninstalled version.
-      for ALIAS in `command grep -l $VERSION "$(nvm_alias_path)/*" 2>/dev/null`
+      for ALIAS in `command grep -l $VERSION "$(tnvm_alias_path)/*" 2>/dev/null`
       do
         tnvm unalias "$(command basename "$ALIAS")"
       done
     ;;
     "deactivate" )
       local NEWPATH
-      NEWPATH="$(nvm_strip_path "$PATH" "/bin")"
+      NEWPATH="$(tnvm_strip_path "$PATH" "/bin")"
       if [ "_$PATH" = "_$NEWPATH" ]; then
         echo "Could not find $NVM_DIR/*/bin in \$PATH" >&2
       else
@@ -1326,7 +1318,7 @@ tnvm() {
         echo "$NVM_DIR/*/bin removed from \$PATH"
       fi
 
-      NEWPATH="$(nvm_strip_path "$MANPATH" "/share/man")"
+      NEWPATH="$(tnvm_strip_path "$MANPATH" "/share/man")"
       if [ "_$MANPATH" = "_$NEWPATH" ]; then
         echo "Could not find $NVM_DIR/*/share/man in \$MANPATH" >&2
       else
@@ -1334,7 +1326,7 @@ tnvm() {
         echo "$NVM_DIR/*/share/man removed from \$MANPATH"
       fi
 
-      NEWPATH="$(nvm_strip_path "$NODE_PATH" "/lib/node_modules")"
+      NEWPATH="$(tnvm_strip_path "$NODE_PATH" "/lib/node_modules")"
       if [ "_$NODE_PATH" != "_$NEWPATH" ]; then
         export NODE_PATH="$NEWPATH"
         echo "$NVM_DIR/*/lib/node_modules removed from \$NODE_PATH"
@@ -1343,26 +1335,26 @@ tnvm() {
     "use" )
       local PROVIDED_VERSION
       if [ $# -eq 1 ]; then
-        nvm_rc_version
+        tnvm_rc_version
         if [ -n "$TNVM_RC_VERSION" ]; then
           PROVIDED_VERSION="$TNVM_RC_VERSION"
-          VERSION="$(nvm_version "$PROVIDED_VERSION")"
+          VERSION="$(tnvm_version "$PROVIDED_VERSION")"
         fi
       else
         local NVM_IOJS_PREFIX
-        NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
+        NVM_IOJS_PREFIX="$(tnvm_iojs_prefix)"
         local NVM_NODE_PREFIX
-        NVM_NODE_PREFIX="$(nvm_node_prefix)"
+        NVM_NODE_PREFIX="$(tnvm_node_prefix)"
         PROVIDED_VERSION="$2"
         case "_$PROVIDED_VERSION" in
           "_$NVM_IOJS_PREFIX" | "_io.js")
-            VERSION="$(nvm_version $NVM_IOJS_PREFIX)"
+            VERSION="$(tnvm_version $NVM_IOJS_PREFIX)"
           ;;
           "_system")
             VERSION="system"
           ;;
           *)
-            VERSION="$(nvm_version "$PROVIDED_VERSION")"
+            VERSION="$(tnvm_version "$PROVIDED_VERSION")"
           ;;
         esac
       fi
@@ -1373,11 +1365,11 @@ tnvm() {
       fi
 
       if [ "_$VERSION" = '_system' ]; then
-        if nvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
-          echo "Now using system version of node: $(node -v 2>/dev/null)$(nvm_print_npm_version)"
+        if tnvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
+          echo "Now using system version of node: $(node -v 2>/dev/null)$(tnvm_print_npm_version)"
           return
-        elif nvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
-          echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(nvm_print_npm_version)"
+        elif tnvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
+          echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(tnvm_print_npm_version)"
           return
         else
           echo "System version of node not found." >&2
@@ -1388,29 +1380,29 @@ tnvm() {
         return 8
       fi
 
-      # This nvm_ensure_version_installed call can be a performance bottleneck
+      # This tnvm_ensure_version_installed call can be a performance bottleneck
       # on shell startup. Perhaps we can optimize it away or make it faster.
-      nvm_ensure_version_installed "$PROVIDED_VERSION"
+      tnvm_ensure_version_installed "$PROVIDED_VERSION"
       EXIT_CODE=$?
       if [ "$EXIT_CODE" != "0" ]; then
         return $EXIT_CODE
       fi
 
       local NVM_VERSION_DIR
-      NVM_VERSION_DIR="$(nvm_version_path "$VERSION")"
+      NVM_VERSION_DIR="$(tnvm_version_path "$VERSION")"
 
       # Strip other version from PATH
-      PATH="$(nvm_strip_path "$PATH" "/bin")"
+      PATH="$(tnvm_strip_path "$PATH" "/bin")"
       # Prepend current version
-      PATH="$(nvm_prepend_path "$PATH" "$NVM_VERSION_DIR/bin")"
-      if nvm_has manpath; then
+      PATH="$(tnvm_prepend_path "$PATH" "$NVM_VERSION_DIR/bin")"
+      if tnvm_has manpath; then
         if [ -z "$MANPATH" ]; then
           MANPATH=$(manpath)
         fi
         # Strip other version from MANPATH
-        MANPATH="$(nvm_strip_path "$MANPATH" "/share/man")"
+        MANPATH="$(tnvm_strip_path "$MANPATH" "/share/man")"
         # Prepend current version
-        MANPATH="$(nvm_prepend_path "$MANPATH" "$NVM_VERSION_DIR/share/man")"
+        MANPATH="$(tnvm_prepend_path "$MANPATH" "$NVM_VERSION_DIR/share/man")"
         export MANPATH
       fi
       export PATH
@@ -1420,10 +1412,10 @@ tnvm() {
       if [ "$NVM_SYMLINK_CURRENT" = true ]; then
         command rm -f "$NVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$NVM_DIR/current"
       fi
-      if nvm_is_iojs_version "$VERSION"; then
-        echo "Now using io.js $(nvm_strip_iojs_prefix "$VERSION")$(nvm_print_npm_version)"
+      if tnvm_is_iojs_version "$VERSION"; then
+        echo "Now using io.js $(tnvm_strip_iojs_prefix "$VERSION")$(tnvm_print_npm_version)"
       else
-        echo "Now using node $VERSION$(nvm_print_npm_version)"
+        echo "Now using node $VERSION$(tnvm_print_npm_version)"
       fi
     ;;
     "run" )
@@ -1433,9 +1425,9 @@ tnvm() {
       # run given version of node
       shift
       if [ $# -lt 1 ]; then
-        nvm_rc_version && has_checked_nvmrc=1
+        tnvm_rc_version && has_checked_nvmrc=1
         if [ -n "$TNVM_RC_VERSION" ]; then
-          VERSION="$(nvm_version "$TNVM_RC_VERSION")"
+          VERSION="$(tnvm_version "$TNVM_RC_VERSION")"
         else
           VERSION='N/A'
         fi
@@ -1447,20 +1439,20 @@ tnvm() {
 
       provided_version=$1
       if [ -n "$provided_version" ]; then
-        VERSION="$(nvm_version "$provided_version")"
-        if [ "_$VERSION" = "_N/A" ] && ! nvm_is_valid_version "$provided_version"; then
+        VERSION="$(tnvm_version "$provided_version")"
+        if [ "_$VERSION" = "_N/A" ] && ! tnvm_is_valid_version "$provided_version"; then
           provided_version=''
           if [ $has_checked_nvmrc -ne 1 ]; then
-            nvm_rc_version && has_checked_nvmrc=1
+            tnvm_rc_version && has_checked_nvmrc=1
           fi
-          VERSION="$(nvm_version "$TNVM_RC_VERSION")"
+          VERSION="$(tnvm_version "$TNVM_RC_VERSION")"
         else
           shift
         fi
       fi
 
       local NVM_IOJS
-      if nvm_is_iojs_version "$VERSION"; then
+      if tnvm_is_iojs_version "$VERSION"; then
         NVM_IOJS=true
       fi
 
@@ -1471,12 +1463,12 @@ tnvm() {
 
       local ZHS_HAS_SHWORDSPLIT_UNSET
       ZHS_HAS_SHWORDSPLIT_UNSET=1
-      if nvm_has "setopt"; then
+      if tnvm_has "setopt"; then
         ZHS_HAS_SHWORDSPLIT_UNSET=$(setopt | command grep shwordsplit > /dev/null ; echo $?)
         setopt shwordsplit
       fi
       if [ "_$VERSION" = "_N/A" ]; then
-        echo "$(nvm_ensure_version_prefix "$provided_version") is not installed yet" >&2
+        echo "$(tnvm_ensure_version_prefix "$provided_version") is not installed yet" >&2
         EXIT_CODE=1
       elif [ -z "$ARGS" ]; then
         if [ "$NVM_IOJS" = true ]; then
@@ -1486,7 +1478,7 @@ tnvm() {
         fi
         EXIT_CODE="$?"
       elif [ "$NVM_IOJS" = true ]; then
-        echo "Running io.js $(nvm_strip_iojs_prefix "$VERSION")"
+        echo "Running io.js $(tnvm_strip_iojs_prefix "$VERSION")"
         OUTPUT="$(tnvm use "$VERSION" >/dev/null && iojs $ARGS)"
         EXIT_CODE="$?"
       else
@@ -1494,7 +1486,7 @@ tnvm() {
         OUTPUT="$(tnvm use "$VERSION" >/dev/null && node $ARGS)"
         EXIT_CODE="$?"
       fi
-      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && nvm_has "unsetopt"; then
+      if [ $ZHS_HAS_SHWORDSPLIT_UNSET -eq 1 ] && tnvm_has "unsetopt"; then
         unsetopt shwordsplit
       fi
       if [ -n "$OUTPUT" ]; then
@@ -1508,17 +1500,17 @@ tnvm() {
       local provided_version
       provided_version="$1"
       if [ -n "$provided_version" ]; then
-        VERSION="$(nvm_version "$provided_version")"
+        VERSION="$(tnvm_version "$provided_version")"
         if [ "_$VERSION" = "_N/A" ]; then
-          nvm_rc_version
+          tnvm_rc_version
           provided_version="$TNVM_RC_VERSION"
-          VERSION="$(nvm_version "$provided_version")"
+          VERSION="$(tnvm_version "$provided_version")"
         else
           shift
         fi
       fi
 
-      nvm_ensure_version_installed "$provided_version"
+      tnvm_ensure_version_installed "$provided_version"
       EXIT_CODE=$?
       if [ "$EXIT_CODE" != "0" ]; then
         return $EXIT_CODE
@@ -1530,9 +1522,9 @@ tnvm() {
     "ls" | "list" )
       local NVM_LS_OUTPUT
       local NVM_LS_EXIT_CODE
-      NVM_LS_OUTPUT=$(nvm_ls "$2")
+      NVM_LS_OUTPUT=$(tnvm_ls "$2")
       NVM_LS_EXIT_CODE=$?
-      nvm_print_versions "$NVM_LS_OUTPUT"
+      tnvm_print_versions "$NVM_LS_OUTPUT"
       if [ $# -eq 1 ]; then
         tnvm alias
       fi
@@ -1543,7 +1535,7 @@ tnvm() {
       PATTERN="$2"
       local NVM_FLAVOR
       case "_$PATTERN" in
-        "_$(nvm_iojs_prefix)" | "_$(nvm_node_prefix)" )
+        "_$(tnvm_iojs_prefix)" | "_$(tnvm_node_prefix)" )
           NVM_FLAVOR="$PATTERN"
           PATTERN="$3"
         ;;
@@ -1553,8 +1545,8 @@ tnvm() {
       NVM_LS_REMOTE_EXIT_CODE=0
       local NVM_LS_REMOTE_OUTPUT
       NVM_LS_REMOTE_OUTPUT=''
-      if [ "_$NVM_FLAVOR" != "_$(nvm_iojs_prefix)" ]; then
-        NVM_LS_REMOTE_OUTPUT=$(nvm_ls_remote "$PATTERN")
+      if [ "_$NVM_FLAVOR" != "_$(tnvm_iojs_prefix)" ]; then
+        NVM_LS_REMOTE_OUTPUT=$(tnvm_ls_remote "$PATTERN")
         NVM_LS_REMOTE_EXIT_CODE=$?
       fi
 
@@ -1562,8 +1554,8 @@ tnvm() {
       NVM_LS_REMOTE_IOJS_EXIT_CODE=0
       local NVM_LS_REMOTE_IOJS_OUTPUT
       NVM_LS_REMOTE_IOJS_OUTPUT=''
-      if [ "_$NVM_FLAVOR" != "_$(nvm_node_prefix)" ]; then
-        NVM_LS_REMOTE_IOJS_OUTPUT=$(nvm_ls_remote_iojs "$PATTERN")
+      if [ "_$NVM_FLAVOR" != "_$(tnvm_node_prefix)" ]; then
+        NVM_LS_REMOTE_IOJS_OUTPUT=$(tnvm_ls_remote_iojs "$PATTERN")
         NVM_LS_REMOTE_IOJS_EXIT_CODE=$?
       fi
 
@@ -1571,27 +1563,27 @@ tnvm() {
       NVM_OUTPUT="$(echo "$NVM_LS_REMOTE_OUTPUT
 $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
       if [ -n "$NVM_OUTPUT" ]; then
-        nvm_print_versions "$NVM_OUTPUT"
+        tnvm_print_versions "$NVM_OUTPUT"
         return $NVM_LS_REMOTE_EXIT_CODE || $NVM_LS_REMOTE_IOJS_EXIT_CODE
       else
-        nvm_print_versions "N/A"
+        tnvm_print_versions "N/A"
         return 3
       fi
     ;;
     "current" )
-      nvm_version current
+      tnvm_version current
     ;;
     "which" )
       local provided_version
       provided_version="$2"
       if [ $# -eq 1 ]; then
-        nvm_rc_version
+        tnvm_rc_version
         if [ -n "$TNVM_RC_VERSION" ]; then
           provided_version="$TNVM_RC_VERSION"
-          VERSION=$(nvm_version "$TNVM_RC_VERSION")
+          VERSION=$(tnvm_version "$TNVM_RC_VERSION")
         fi
       elif [ "_$2" != '_system' ]; then
-        VERSION="$(nvm_version "$provided_version")"
+        VERSION="$(tnvm_version "$provided_version")"
       else
         VERSION="$2"
       fi
@@ -1601,7 +1593,7 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
       fi
 
       if [ "_$VERSION" = '_system' ]; then
-        if nvm_has_system_iojs >/dev/null 2>&1 || nvm_has_system_node >/dev/null 2>&1; then
+        if tnvm_has_system_iojs >/dev/null 2>&1 || tnvm_has_system_node >/dev/null 2>&1; then
           local NVM_BIN
           NVM_BIN="$(tnvm use system >/dev/null 2>&1 && command which node)"
           if [ -n "$NVM_BIN" ]; then
@@ -1619,26 +1611,26 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
         return 8
       fi
 
-      nvm_ensure_version_installed "$provided_version"
+      tnvm_ensure_version_installed "$provided_version"
       EXIT_CODE=$?
       if [ "$EXIT_CODE" != "0" ]; then
         return $EXIT_CODE
       fi
       local NVM_VERSION_DIR
-      NVM_VERSION_DIR="$(nvm_version_path "$VERSION")"
+      NVM_VERSION_DIR="$(tnvm_version_path "$VERSION")"
       echo "$NVM_VERSION_DIR/bin/node"
     ;;
     "alias" )
       local NVM_ALIAS_DIR
-      NVM_ALIAS_DIR="$(nvm_alias_path)"
+      NVM_ALIAS_DIR="$(tnvm_alias_path)"
       command mkdir -p "$NVM_ALIAS_DIR"
       if [ $# -le 2 ]; then
         local DEST
         for ALIAS_PATH in "$NVM_ALIAS_DIR"/"$2"*; do
           ALIAS="$(command basename "$ALIAS_PATH")"
-          DEST="$(nvm_alias "$ALIAS" 2> /dev/null)"
+          DEST="$(tnvm_alias "$ALIAS" 2> /dev/null)"
           if [ -n "$DEST" ]; then
-            VERSION="$(nvm_version "$DEST")"
+            VERSION="$(tnvm_version "$DEST")"
             if [ "_$DEST" = "_$VERSION" ]; then
               echo "$ALIAS -> $DEST"
             else
@@ -1647,12 +1639,12 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
           fi
         done
 
-        for ALIAS in "$(nvm_node_prefix)" "stable" "unstable" "$(nvm_iojs_prefix)"; do
+        for ALIAS in "$(tnvm_node_prefix)" "stable" "unstable" "$(tnvm_iojs_prefix)"; do
           if [ ! -f "$NVM_ALIAS_DIR/$ALIAS" ]; then
             if [ $# -lt 2 ] || [ "~$ALIAS" = "~$2" ]; then
-              DEST="$(nvm_print_implicit_alias local "$ALIAS")"
+              DEST="$(tnvm_print_implicit_alias local "$ALIAS")"
               if [ "_$DEST" != "_" ]; then
-                VERSION="$(nvm_version "$DEST")"
+                VERSION="$(tnvm_version "$DEST")"
                 echo "$ALIAS -> $DEST (-> $VERSION) (default)"
               fi
             fi
@@ -1665,7 +1657,7 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
         echo "$2 -> *poof*"
         return
       fi
-      VERSION="$(nvm_version "$3")"
+      VERSION="$(tnvm_version "$3")"
       if [ $? -ne 0 ]; then
         echo "! WARNING: Version '$3' does not exist." >&2
       fi
@@ -1678,7 +1670,7 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
     ;;
     "unalias" )
       local NVM_ALIAS_DIR
-      NVM_ALIAS_DIR="$(nvm_alias_path)"
+      NVM_ALIAS_DIR="$(tnvm_alias_path)"
       command mkdir -p "$NVM_ALIAS_DIR"
       if [ $# -ne 2 ]; then
         >&2 tnvm help
@@ -1688,67 +1680,26 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
       command rm -f "$NVM_ALIAS_DIR/$2"
       echo "Deleted alias $2"
     ;;
-    "reinstall-packages" | "copy-packages" )
-      if [ $# -ne 2 ]; then
-        >&2 tnvm help
-        return 127
-      fi
-
-      local PROVIDED_VERSION
-      PROVIDED_VERSION="$2"
-
-      if [ "$PROVIDED_VERSION" = "$(nvm_ls_current)" ] || [ "$(nvm_version "$PROVIDED_VERSION")" = "$(nvm_ls_current)" ]; then
-        echo 'Can not reinstall packages from the current version of node.' >&2
-        return 2
-      fi
-
-      local NPMLIST
-      local VERSION
-      if [ "_$PROVIDED_VERSION" = "_system" ]; then
-        if ! nvm_has_system_node && ! nvm_has_system_iojs; then
-          echo 'No system version of node or io.js detected.' >&2
-          return 3
-        fi
-        VERSION="system"
-        NPMLIST=$(nvm deactivate > /dev/null && npm list -g --depth=0 | command tail -n +2)
-      else
-        VERSION="$(nvm_version "$PROVIDED_VERSION")"
-        NPMLIST=$(tnvm use "$VERSION" > /dev/null && npm list -g --depth=0 | command tail -n +2)
-      fi
-
-      local INSTALLS
-      INSTALLS=$(echo "$NPMLIST" | command sed -e '/ -> / d' -e '/\(empty\)/ d' -e 's/^.* \(.*\)@.*/\1/' -e '/^npm$/ d' | command xargs)
-
-      echo "Copying global packages from $VERSION..."
-      echo "$INSTALLS" | command xargs npm install -g --quiet
-
-      local LINKS
-      LINKS=$(echo "$NPMLIST" | command sed -n 's/.* -> \(.*\)/\1/ p')
-
-      echo "Linking global packages from $VERSION..."
-      for LINK in $LINKS; do
-        (cd "$LINK" && npm link)
-      done
-    ;;
+    
     "clear-cache" )
-      command rm -f $NVM_DIR/v* "$(nvm_version_dir)" 2>/dev/null
+      command rm -f $NVM_DIR/v* "$(tnvm_version_dir)" 2>/dev/null
       echo "Cache cleared."
     ;;
     "version" )
-      nvm_version $2
+      tnvm_version $2
     ;;
     "--version" )
       echo "0.25.4"
     ;;
     "unload" )
-      unset -f tnvm nvm_print_versions nvm_checksum \
-        nvm_iojs_prefix nvm_node_prefix \
-        nvm_add_iojs_prefix nvm_strip_iojs_prefix \
-        nvm_is_iojs_version \
-        nvm_ls_remote nvm_ls nvm_remote_version nvm_remote_versions \
-        nvm_version nvm_rc_version \
-        nvm_version_greater nvm_version_greater_than_or_equal_to \
-        nvm_supports_source_options > /dev/null 2>&1
+      unset -f tnvm tnvm_print_versions tnvm_checksum \
+        tnvm_iojs_prefix tnvm_node_prefix \
+        tnvm_add_iojs_prefix tnvm_strip_iojs_prefix \
+        tnvm_is_iojs_version \
+        tnvm_ls_remote tnvm_ls tnvm_remote_version tnvm_remote_versions \
+        tnvm_version tnvm_rc_version \
+        tnvm_version_greater tnvm_version_greater_than_or_equal_to \
+        tnvm_supports_source_options > /dev/null 2>&1
       unset RC_VERSION TNVM_NODEJS_ORG_MIRROR NVM_DIR NVM_CD_FLAGS > /dev/null 2>&1
     ;;
     * )
@@ -1758,20 +1709,20 @@ $NVM_LS_REMOTE_IOJS_OUTPUT" | command grep -v "N/A" | sed '/^$/d')"
   esac
 }
 
-nvm_supports_source_options() {
+tnvm_supports_source_options() {
   [ "_$(echo 'echo $1' | . /dev/stdin yes 2> /dev/null)" = "_yes" ]
 }
 
-VERSION="$(nvm_alias default 2>/dev/null || echo)"
-if nvm_supports_source_options && [ "_$1" = "_--install" ]; then
+VERSION="$(tnvm_alias default 2>/dev/null || echo)"
+if tnvm_supports_source_options && [ "_$1" = "_--install" ]; then
   if [ -n "$VERSION" ]; then
     tnvm install "$VERSION" >/dev/null
-  elif nvm_rc_version >/dev/null 2>&1; then
+  elif tnvm_rc_version >/dev/null 2>&1; then
     tnvm install >/dev/null
   fi
 elif [ -n "$VERSION" ]; then
   tnvm use "$VERSION" >/dev/null
-elif nvm_rc_version >/dev/null 2>&1; then
+elif tnvm_rc_version >/dev/null 2>&1; then
   tnvm use >/dev/null
 fi
 

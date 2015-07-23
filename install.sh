@@ -4,7 +4,7 @@ set -e
 
 { # this ensures the entire script is downloaded #
 
-nvm_has() {
+tnvm_has() {
   type "$1" > /dev/null 2>&1
 }
 
@@ -18,7 +18,7 @@ fi
 # * The method used ("script" or "git" in the script, defaults to "git")
 # NVM_SOURCE always takes precedence unless the method is "script-nvm-exec"
 #
-nvm_source() {
+tnvm_source() {
   local NVM_METHOD
   NVM_METHOD="$1"
   local NVM_SOURCE_URL
@@ -38,10 +38,10 @@ nvm_source() {
   echo "$NVM_SOURCE_URL"
 }
 
-nvm_download() {
-  if nvm_has "curl"; then
+tnvm_download() {
+  if tnvm_has "curl"; then
     curl -q $*
-  elif nvm_has "wget"; then
+  elif tnvm_has "wget"; then
     # Emulate curl with wget
     ARGS=$(echo "$*" | command sed -e 's/--progress-bar /--progress=bar /' \
                            -e 's/-L //' \
@@ -53,7 +53,7 @@ nvm_download() {
   fi
 }
 
-install_nvm_from_git() {
+install_tnvm_from_git() {
   if [ -d "$NVM_DIR/.git" ]; then
     echo "=> tnvm is already installed in $NVM_DIR, trying to update using git"
     printf "\r=> "
@@ -65,17 +65,17 @@ install_nvm_from_git() {
     echo "=> Downloading tnvm from git to '$NVM_DIR'"
     printf "\r=> "
     mkdir -p "$NVM_DIR"
-    command git clone "$(nvm_source git)" "$NVM_DIR"
+    command git clone "$(tnvm_source git)" "$NVM_DIR"
   fi
   cd "$NVM_DIR" && command git checkout --quiet master
   return
 }
 
-install_nvm_as_script() {
+install_tnvm_as_script() {
   local NVM_SOURCE_LOCAL
-  NVM_SOURCE_LOCAL=$(nvm_source script)
+  NVM_SOURCE_LOCAL=$(tnvm_source script)
   local NVM_EXEC_SOURCE
-  NVM_EXEC_SOURCE=$(nvm_source script-nvm-exec)
+  NVM_EXEC_SOURCE=$(tnvm_source script-nvm-exec)
 
   # Downloading to $NVM_DIR
   mkdir -p "$NVM_DIR"
@@ -84,11 +84,11 @@ install_nvm_as_script() {
   else
     echo "=> Downloading tnvm as script to '$NVM_DIR'"
   fi
-  nvm_download -s "$NVM_SOURCE_LOCAL" -o "$NVM_DIR/nvm.sh" || {
+  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$NVM_DIR/nvm.sh" || {
     echo >&2 "Failed to download '$NVM_SOURCE_LOCAL'"
     return 1
   }
-  nvm_download -s "$NVM_EXEC_SOURCE" -o "$NVM_DIR/nvm-exec" || {
+  tnvm_download -s "$NVM_EXEC_SOURCE" -o "$NVM_DIR/nvm-exec" || {
     echo >&2 "Failed to download '$NVM_EXEC_SOURCE'"
     return 2
   }
@@ -104,7 +104,7 @@ install_nvm_as_script() {
 # The echo'ed path is guaranteed to be an existing file
 # Otherwise, an empty string is returned
 #
-nvm_detect_profile() {
+tnvm_detect_profile() {
   if [ -f "$PROFILE" ]; then
     echo "$PROFILE"
   elif [ -f "$HOME/.bashrc" ]; then
@@ -122,7 +122,7 @@ nvm_detect_profile() {
 # Check whether the user has any globally-installed npm modules in their system
 # Node, and warn them if so.
 #
-nvm_check_global_modules() {
+tnvm_check_global_modules() {
   command -v npm >/dev/null 2>&1 || return 0
 
   local NPM_VERSION
@@ -165,35 +165,35 @@ nvm_check_global_modules() {
   fi
 }
 
-nvm_do_install() {
+tnvm_do_install() {
   if [ -z "$METHOD" ]; then
     # Autodetect install method
-    if nvm_has "git"; then
-      install_nvm_from_git
-    elif nvm_has "nvm_download"; then
-      install_nvm_as_script
+    if tnvm_has "git"; then
+      install_tnvm_from_git
+    elif tnvm_has "tnvm_download"; then
+      install_tnvm_as_script
     else
       echo >&2 "You need git, curl, or wget to install nvm"
       exit 1
     fi
   elif [ "~$METHOD" = "~git" ]; then
-    if ! nvm_has "git"; then
+    if ! tnvm_has "git"; then
       echo >&2 "You need git to install nvm"
       exit 1
     fi
-    install_nvm_from_git
+    install_tnvm_from_git
   elif [ "~$METHOD" = "~script" ]; then
-    if ! nvm_has "nvm_download"; then
+    if ! tnvm_has "tnvm_download"; then
       echo >&2 "You need curl or wget to install nvm"
       exit 1
     fi
-    install_nvm_as_script
+    install_tnvm_as_script
   fi
 
   echo
 
   local NVM_PROFILE
-  NVM_PROFILE=$(nvm_detect_profile)
+  NVM_PROFILE=$(tnvm_detect_profile)
 
   SOURCE_STR="\nexport NVM_DIR=\"$NVM_DIR\"\n[ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"  # This loads nvm"
 
@@ -214,22 +214,22 @@ nvm_do_install() {
     fi
   fi
 
-  nvm_check_global_modules
+  tnvm_check_global_modules
 
   echo "=> Close and reopen your terminal to start using tnvm"
-  nvm_reset
+  tnvm_reset
 }
 
 #
 # Unsets the various functions defined
 # during the execution of the install script
 #
-nvm_reset() {
-  unset -f nvm_reset nvm_has nvm_latest_version \
-    nvm_source nvm_download install_nvm_as_script install_nvm_from_git \
-    nvm_detect_profile nvm_check_global_modules nvm_do_install
+tnvm_reset() {
+  unset -f tnvm_reset tnvm_has tnvm_latest_version \
+    tnvm_source tnvm_download install_tnvm_as_script install_tnvm_from_git \
+    tnvm_detect_profile tnvm_check_global_modules tnvm_do_install
 }
 
-nvm_do_install
+tnvm_do_install
 
 } # this ensures the entire script is downloaded #
