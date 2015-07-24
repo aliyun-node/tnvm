@@ -338,6 +338,8 @@ tnvm_checksum() {
   local NVM_CHECKSUM
   if tnvm_has "sha256sum" && ! tnvm_is_alias "sha256sum"; then
     NVM_CHECKSUM="$(command sha256sum "$1" | command awk '{print $1}')"
+  elif tnvm_has "shasum" && ! tnvm_is_alias "shasum"; then
+    NVM_CHECKSUM="$(command shasum -a 256 "$1" | command awk '{print $1}')"
   else
     echo "Unaliased sha256sum, or shasum not found." >&2
     return 2
