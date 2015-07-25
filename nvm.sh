@@ -433,6 +433,10 @@ tnvm_install_binary() {
       url="$mirror/$VERSION/$PREFIX-${t}.tar.gz"
       sum="$(tnvm_download -L -s $mirror/$VERSION/SHASUMS256.txt -o - \
            | command grep $PREFIX-${t}.tar.gz | command awk '{print $1}')"
+      if [ -z "$sum" ]; then
+        echo >&2 "Binary download failed, $PREFIX-${t}.tar.gz N/A." >&2
+        return 2
+      fi
       local tmpdir
       tmpdir="$TNVM_DIR/bin/$PREFIX-${t}"
       local tmptarball
