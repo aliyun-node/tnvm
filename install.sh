@@ -55,8 +55,8 @@ install_tnvm_from_git() {
   if [ -d "$TNVM_DIR/.git" ]; then
     echo "=> tnvm is already installed in $TNVM_DIR, trying to update using git"
     printf "\r=> "
-    cd "$TNVM_DIR" && (command git fetch 2> /dev/null || {
-      echo >&2 "Failed to update tnvm, run 'git fetch' in $TNVM_DIR yourself." && exit 1
+    cd "$TNVM_DIR" && (command git pull 2> /dev/null || {
+      echo >&2 "Failed to update tnvm, run 'git pull' in $TNVM_DIR yourself." && exit 1
     })
   else
     # Cloning to $TNVM_DIR
