@@ -72,11 +72,11 @@ install_tnvm_from_git() {
 install_tnvm_as_script() {
   local NVM_SOURCE_LOCAL
   NVM_SOURCE_LOCAL=$(tnvm_source script)
-  local NVM_EXEC_SOURCE
-  NVM_EXEC_SOURCE=$(tnvm_source script-nvm-exec)
 
   # Downloading to $TNVM_DIR
   mkdir -p "$TNVM_DIR"
+  mkdir -p "$TNVM_DIR/versions"
+
   if [ -d "$TNVM_DIR/tnvm.sh" ]; then
     echo "=> tnvm is already installed in $TNVM_DIR, trying to update the script"
   else

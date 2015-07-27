@@ -9,6 +9,8 @@ bash install.sh
 ```
 
 ## Usage
+Support `alinode`, `node`, `iojs`, `node-profiler`　versioin manager
+
 Example:
  * tnvm ls alinode
  * tnvm ls-remote alinode
