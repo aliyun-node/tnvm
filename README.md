@@ -9,12 +9,13 @@ bash install.sh
 ```
 
 ## Usage
-Support `alinode`, `node`, `iojs`, `node-profiler`　versioin manager
+Support `alinode`, `node`, `iojs`, `node-profiler` version manager
 
 Example:
  * tnvm ls alinode
  * tnvm ls-remote alinode
  * tnvm install alinode-v0.12.4
+ * tnvm install node-v0.12.4
  * tnvm use alinode-v0.12.4
 
 More:
