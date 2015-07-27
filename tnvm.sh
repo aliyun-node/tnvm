@@ -10,9 +10,10 @@ NVM_SCRIPT_SOURCE="$_"
 
 MIRRORS=("http://npm.taobao.org/mirrors/node"
         "http://npm.taobao.org/mirrors/iojs"
-        "http://121.43.234.185:8000/dist/node")
+        "http://121.43.234.185:8000/dist/node"
+        "http://121.43.234.185:8000/dist/profiler")
 
-#set -x
+TNVM_IFS='-' #TODO
 
 tnvm_has() {
   type "$1" > /dev/null 2>&1
@@ -91,12 +92,12 @@ tnvm_tree_contains_path() {
 tnvm_rc_version() {
   export TNVM_RC_VERSION=''
   local NVMRC_PATH
-  NVMRC_PATH="$TNVM_DIR/.nvmrc"
+  NVMRC_PATH="$TNVM_DIR/.tnvmrc"
   if [ -e "$NVMRC_PATH" ]; then
     read TNVM_RC_VERSION < "$NVMRC_PATH"
     echo "Found '$NVMRC_PATH' with version <$NVM_RC_VERSION>"
   else
-    >&2 echo "No .nvmrc file found"
+    >&2 echo "No .tnvmrc file found"
     return 1
   fi
 }
@@ -208,7 +209,6 @@ tnvm_normalize_version() {
 }
 
 
-
 tnvm_format_version() {
   local VERSION
   VERSION="$1"
@@ -218,6 +218,7 @@ tnvm_format_version() {
     echo "$VERSION"
   fi
 }
+
 
 tnvm_num_version_groups() {
   local VERSION
@@ -267,11 +268,13 @@ tnvm_ls_current() {
   if [ $? -ne 0 ]; then
     echo 'none'
   elif tnvm_tree_contains_path "$(tnvm_version_dir iojs-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
-    echo "$(iojs $(iojs -v 2>/dev/null))"
+    echo "(iojs $(iojs -v 2>/dev/null))"
   elif tnvm_tree_contains_path "$(tnvm_version_dir node-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(node $(node -v 2>/dev/null))"
-   elif tnvm_tree_contains_path "$(tnvm_version_dir alinode-v)" "$NVM_LS_CURRENT_NODE_PATH"; then  
+  elif tnvm_tree_contains_path "$(tnvm_version_dir alinode-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(alinode $(node -V 2>/dev/null)) --> (node $(node -v 2>/dev/null))"
+  elif tnvm_tree_contains_path "$(tnvm_version_dir profiler-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
+    echo "(profiler $(node -v 2>/dev/null))"
   else
     echo 'system'
   fi
@@ -321,6 +324,7 @@ tnvm_ls_remote() {
     "node") mirror=${MIRRORS[0]} ;;
     "iojs") mirror=${MIRRORS[1]} ;;
     "alinode") mirror=${MIRRORS[2]} ;;
+    "profiler") mirror=${MIRRORS[3]} ;;
   esac
 
   VERSIONS=`tnvm_download -L -s $mirror/ -o - \
@@ -425,6 +429,7 @@ tnvm_install_binary() {
     "node") mirror=${MIRRORS[0]} ;;
     "iojs") mirror=${MIRRORS[1]} ;;
     "alinode") mirror=${MIRRORS[2]} ;;
+    "profiler") mirror=${MIRRORS[3]} ;;
   esac
   
   if [ -n "$NVM_OS" ]; then
@@ -468,6 +473,9 @@ tnvm_install_binary() {
   return 2
 }
 
+tnvm_check_params() {
+  echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null
+}
 
 tnvm() {
   if [ $# -lt 1 ]; then
@@ -487,16 +495,16 @@ tnvm() {
       echo "Taobao Node Version Manager"
       echo
       echo "Usage:"
-      echo "  tnvm help                              Show this message"
-      echo "  tnvm --v                               Print out the latest released version of tnvm"
-      echo "  tnvm install <version>                 Download and install a <version>"
-      echo "  tnvm uninstall <version>               Uninstall a version"
-      echo "  tnvm use <version>                     Modify PATH to use <version>. Uses .nvmrc if available"
-      echo "  tnvm current                           Display currently activated version"
-      echo "  tnvm ls [node|alinode|iojs]            List versions matching a given description"
-      echo "  tnvm ls-remote [node|alinode|iojs]     List remote versions available for install"
-      echo "  tnvm deactivate                        Undo effects of \`tnvm\` on current shell"
-      echo "  tnvm unload                            Unload \`tnvm\` from shell"
+      echo "  tnvm help                                       Show this message"
+      echo "  tnvm -v                                         Print out the latest released version of tnvm"
+      echo "  tnvm install <version>                          Download and install a <version>"
+      echo "  tnvm uninstall <version>                        Uninstall a version"
+      echo "  tnvm use <version>                              Modify PATH to use <version>. Uses .tnvmrc if available"
+      echo "  tnvm current                                    Display currently activated version"
+      echo "  tnvm ls [node|alinode|iojs|profiler]            List versions matching a given description"
+      echo "  tnvm ls-remote [node|alinode|iojs|profiler]     List remote versions available for install"
+      echo "  tnvm deactivate                                 Undo effects of \`tnvm\` on current shell"
+      echo "  tnvm unload                                     Unload \`tnvm\` from shell"
 
       echo
       echo "Example:"
@@ -532,7 +540,10 @@ tnvm() {
 
       nobinary=0
       provided_version="$1"
-
+      if ! tnvm_check_params "$1" ; then
+        echo "Version '$1' not vaild." >&2
+        return 3
+      fi
       VERSION="$(tnvm_remote_version "$provided_version")"
 
       if [ "_$VERSION" = "_N/A" ]; then
@@ -547,11 +558,8 @@ tnvm() {
         return $?
       fi
 
-      if [ "_$NVM_OS" = "_freebsd" ]; then
+      if [ "_$NVM_OS" = "_freebsd" ] || [ "_$NVM_OS" = "_sunos" ]; then
         # node.js and io.js do not have a FreeBSD binary
-        nobinary=1
-      elif [ "_$NVM_OS" = "_sunos" ] && [ "$NVM_IOJS" = true ]; then
-        # io.js does not have a SunOS binary
         nobinary=1
       fi
       local NVM_INSTALL_SUCCESS
@@ -575,6 +583,12 @@ tnvm() {
 
       local PATTERN
       PATTERN="$2"
+
+      if ! tnvm_check_params "$2" ; then
+        echo "Version '$2' not vaild." >&2
+        return 3
+      fi
+
       VERSION="$(tnvm_version "$PATTERN")"
       if [ "_$VERSION" = "_$(tnvm_ls_current)" ]; then   
         echo "tnvm: Cannot uninstall currently-active node version, $VERSION (inferred from $PATTERN)." >&2
@@ -594,7 +608,7 @@ tnvm() {
       local NVM_SUCCESS_MSG
       
       NVM_PREFIX="$(tnvm_get_prefix)"
-      NVM_SUCCESS_MSG="Uninstalled  $VERSION"
+      NVM_SUCCESS_MSG="Uninstalled  $VERSION and reopen your terminal."
       
       # Delete all files related to target version.
       command rm -rf "$TNVM_DIR/src/$NVM_PREFIX-$VERSION" \
@@ -602,7 +616,7 @@ tnvm() {
              "$TNVM_DIR/bin/$NVM_PREFIX-${t}" \
              "$TNVM_DIR/bin/$NVM_PREFIX-${t}.tar.gz" \
              "$VERSION_PATH" 2>/dev/null
-      echo "$NVM_SUCCESS_MSG and reopen your terminal"
+      echo "$NVM_SUCCESS_MSG"
     ;;
     "deactivate" )
       local NEWPATH
@@ -638,7 +652,10 @@ tnvm() {
         PROVIDED_VERSION="$2"
         VERSION="$PROVIDED_VERSION"
       fi
-
+      if ! tnvm_check_params "$2" ; then
+        echo "Version '$2' not vaild." >&2
+        return 3
+      fi
       if [ -z "$VERSION" ]; then
         >&2 tnvm help
         return 127
@@ -692,13 +709,17 @@ tnvm() {
       if [ "$NVM_SYMLINK_CURRENT" = true ]; then
         command rm -f "$TNVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$TNVM_DIR/current"
       fi
-      echo "$VERSION" > "$TNVM_DIR/.nvmrc"
+      echo "$VERSION" > "$TNVM_DIR/.tnvmrc"
       echo "Now using node $VERSION$(tnvm_print_npm_version)"
       
     ;;
     "ls" | "list" )
       local NVM_LS_OUTPUT
       local NVM_LS_EXIT_CODE
+      if [ $# -eq 1 ]; then
+        >&2 tnvm help
+        return 127
+      fi
       NVM_LS_OUTPUT=$(tnvm_ls "$2")
       NVM_LS_EXIT_CODE=$?
       tnvm_print_versions "$NVM_LS_OUTPUT"
@@ -733,7 +754,7 @@ tnvm() {
       echo "Cache cleared."
     ;;
 
-    "--v" )
+    "--v" | "-v" )
       echo "v1.x"
     ;;
 
@@ -741,7 +762,7 @@ tnvm() {
       unset -f tnvm tnvm_print_versions tnvm_checksum \
         tnvm_iojs_prefix tnvm_node_prefix \
         tnvm_ls_remote tnvm_ls tnvm_remote_version tnvm_remote_versions \
-        tnvm_version  \
+        tnvm_version tnvm_check_params \
         tnvm_version_greater tnvm_version_greater_than_or_equal_to \
         tnvm_supports_source_options > /dev/null 2>&1
       unset TNVM_DIR NVM_CD_FLAGS > /dev/null 2>&1
@@ -754,7 +775,7 @@ tnvm() {
 }
 
 if tnvm_rc_version >/dev/null 2>&1; then
-  tnvm use "$TNVM_RC_VERSION" 2>&1
+  tnvm use "$TNVM_RC_VERSION" >/dev/null 2>&1
 fi
 
 } # this ensures the entire script is downloaded #
@@ -782,4 +803,6 @@ fi
 
 
 #tnvm ls "node"
-#tnvm install "alinode-v0.12.5"
+#tnvm install "alinode-v0.12.4"
+#tnvm install "profiler-v0.12.6"
+#tnvm use "profiler-v0.12.6"
