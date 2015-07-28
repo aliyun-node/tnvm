@@ -474,6 +474,9 @@ tnvm_install_binary() {
 }
 
 tnvm_check_params() {
+  if [ "_$1" = '_system' ]; then
+    return
+  fi
   echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null
 }
 
@@ -662,10 +665,10 @@ tnvm() {
       fi
 
       if [ "_$VERSION" = '_system' ]; then
-        if tnvm_has_system_node && nvm deactivate >/dev/null 2>&1; then
+        if tnvm_has_system_node && tnvm deactivate >/dev/null 2>&1; then
           echo "Now using system version of node: $(node -v 2>/dev/null)$(tnvm_print_npm_version)"
           return
-        elif tnvm_has_system_iojs && nvm deactivate >/dev/null 2>&1; then
+        elif tnvm_has_system_iojs && tnvm deactivate >/dev/null 2>&1; then
           echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(tnvm_print_npm_version)"
           return
         else
