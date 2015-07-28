@@ -706,10 +706,7 @@ tnvm() {
       hash -r
       export NVM_PATH="$NVM_VERSION_DIR/lib/node"
       export NVM_BIN="$NVM_VERSION_DIR/bin"
-      if [ "$NVM_SYMLINK_CURRENT" = true ]; then
-        command rm -f "$TNVM_DIR/current" && ln -s "$NVM_VERSION_DIR" "$TNVM_DIR/current"
-      fi
-      echo "$VERSION" > "$TNVM_DIR/.tnvmrc"
+      echo "$VERSION" > "$TNVM_DIR/.tnvmrc" >/dev/null 2>&1
       echo "Now using node $VERSION$(tnvm_print_npm_version)"
       
     ;;
