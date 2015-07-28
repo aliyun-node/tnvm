@@ -204,7 +204,7 @@ tnvm_do_install() {
     fi
   fi
 
-  tnvm_check_global_modules
+  #tnvm_check_global_modules
 
   echo "=> Close and reopen your terminal to start using tnvm"
   tnvm_reset

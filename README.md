@@ -3,9 +3,7 @@ Taobao Node Version Manager
 
 ## Installation
 ```shell
-wget https://raw.githubusercontent.com/yjhjstz/tnvm/v1.x/install.sh
-chmod a+x install.sh 
-bash install.sh
+wget -qO- https://raw.githubusercontent.com/yjhjstz/tnvm/v1.x/install.sh | bash
 ```
 
 ## Usage
