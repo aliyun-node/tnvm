@@ -23,11 +23,9 @@ tnvm_source() {
   NVM_METHOD="$1"
   local NVM_SOURCE_URL
   NVM_SOURCE_URL="$NVM_SOURCE"
-  if [ "_$NVM_METHOD" = "_script-nvm-exec" ]; then
-    NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/master/nvm-exec"
-  elif [ -z "$NVM_SOURCE_URL" ]; then
+  if [ -z "$NVM_SOURCE_URL" ]; then
     if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/master/nvm.sh"
+      NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/v1.x/tnvm.sh"
     elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
       NVM_SOURCE_URL="https://github.com/yjhjstz/tnvm.git"
     else
@@ -57,8 +55,8 @@ install_tnvm_from_git() {
   if [ -d "$TNVM_DIR/.git" ]; then
     echo "=> tnvm is already installed in $TNVM_DIR, trying to update using git"
     printf "\r=> "
-    cd "$TNVM_DIR" && (command git fetch 2> /dev/null || {
-      echo >&2 "Failed to update tnvm, run 'git fetch' in $TNVM_DIR yourself." && exit 1
+    cd "$TNVM_DIR" && (command git pull 2> /dev/null || {
+      echo >&2 "Failed to update tnvm, run 'git pull' in $TNVM_DIR yourself." && exit 1
     })
   else
     # Cloning to $TNVM_DIR
@@ -67,34 +65,26 @@ install_tnvm_from_git() {
     mkdir -p "$TNVM_DIR"
     command git clone "$(tnvm_source git)" "$TNVM_DIR"
   fi
-  cd "$TNVM_DIR" && command git checkout --quiet master
+  cd "$TNVM_DIR" && command git checkout --quiet v1.x
   return
 }
 
 install_tnvm_as_script() {
   local NVM_SOURCE_LOCAL
   NVM_SOURCE_LOCAL=$(tnvm_source script)
-  local NVM_EXEC_SOURCE
-  NVM_EXEC_SOURCE=$(tnvm_source script-nvm-exec)
 
   # Downloading to $TNVM_DIR
   mkdir -p "$TNVM_DIR"
-  if [ -d "$TNVM_DIR/nvm.sh" ]; then
+  mkdir -p "$TNVM_DIR/versions"
+
+  if [ -d "$TNVM_DIR/tnvm.sh" ]; then
     echo "=> tnvm is already installed in $TNVM_DIR, trying to update the script"
   else
     echo "=> Downloading tnvm as script to '$TNVM_DIR'"
   fi
-  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$TNVM_DIR/nvm.sh" || {
+  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$TNVM_DIR/tnvm.sh" || {
     echo >&2 "Failed to download '$NVM_SOURCE_LOCAL'"
     return 1
-  }
-  tnvm_download -s "$NVM_EXEC_SOURCE" -o "$TNVM_DIR/nvm-exec" || {
-    echo >&2 "Failed to download '$NVM_EXEC_SOURCE'"
-    return 2
-  }
-  chmod a+x "$TNVM_DIR/nvm-exec" || {
-    echo >&2 "Failed to mark '$TNVM_DIR/nvm-exec' as executable"
-    return 3
   }
 }
 
@@ -173,18 +163,18 @@ tnvm_do_install() {
     elif tnvm_has "tnvm_download"; then
       install_tnvm_as_script
     else
-      echo >&2 "You need git, curl, or wget to install nvm"
+      echo >&2 "You need git, curl, or wget to install tnvm"
       exit 1
     fi
   elif [ "~$METHOD" = "~git" ]; then
     if ! tnvm_has "git"; then
-      echo >&2 "You need git to install nvm"
+      echo >&2 "You need git to install tnvm"
       exit 1
     fi
     install_tnvm_from_git
   elif [ "~$METHOD" = "~script" ]; then
     if ! tnvm_has "tnvm_download"; then
-      echo >&2 "You need curl or wget to install nvm"
+      echo >&2 "You need curl or wget to install tnvm"
       exit 1
     fi
     install_tnvm_as_script
@@ -195,7 +185,7 @@ tnvm_do_install() {
   local NVM_PROFILE
   NVM_PROFILE=$(tnvm_detect_profile)
 
-  SOURCE_STR="\nexport TNVM_DIR=\"$TNVM_DIR\"\n[ -s \"\$TNVM_DIR/nvm.sh\" ] && . \"\$TNVM_DIR/nvm.sh\"  # This loads nvm"
+  SOURCE_STR="\nexport TNVM_DIR=\"$TNVM_DIR\"\n[ -s \"\$TNVM_DIR/tnvm.sh\" ] && . \"\$TNVM_DIR/tnvm.sh\"  # This loads nvm"
 
   if [ -z "$NVM_PROFILE" ] ; then
     echo "=> Profile not found. Tried $NVM_PROFILE (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
@@ -214,7 +204,7 @@ tnvm_do_install() {
     fi
   fi
 
-  tnvm_check_global_modules
+  #tnvm_check_global_modules
 
   echo "=> Close and reopen your terminal to start using tnvm"
   tnvm_reset
@@ -225,7 +215,7 @@ tnvm_do_install() {
 # during the execution of the install script
 #
 tnvm_reset() {
-  unset -f tnvm_reset tnvm_has tnvm_latest_version \
+  unset -f tnvm_reset tnvm_has \
     tnvm_source tnvm_download install_tnvm_as_script install_tnvm_from_git \
     tnvm_detect_profile tnvm_check_global_modules tnvm_do_install
 }
