@@ -4,7 +4,7 @@ Taobao Node Version Manager
 
 ## Installation
 ```shell
-wget -qO- https://raw.githubusercontent.com/yjhjstz/tnvm/v1.x/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh | bash
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ More:
  * refer to `tnvm help`
 
 Note:
-  * to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders
+  * to remove, delete, or uninstall tnvm - just remove ~/.tnvm folders
 
 
 ## License
