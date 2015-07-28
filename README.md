@@ -1,5 +1,6 @@
 # tnvm
 Taobao Node Version Manager
+请使用　https://github.com/yjhjstz/tnvm/tree/v1.x
 
 ## Installation
 ```shell
