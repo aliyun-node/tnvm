@@ -176,6 +176,8 @@ tnvm_version() {
 
 
 tnvm_remote_version() {
+  local PREFIX
+  PREFIX="$(tnvm_get_prefix "$1")"
   local PATTERN
   PATTERN="$(tnvm_get_version "$1")"
   local VERSION
@@ -304,6 +306,9 @@ tnvm_ls() {
   PATTERN=$1
   local BASE_VERSIONS_DIR
   BASE_VERSIONS_DIR="$TNVM_DIR/versions"
+  if [ ! -d "$BASE_VERSIONS_DIR" ]; then
+    mkdir "$BASE_VERSIONS_DIR"
+  fi
   find $BASE_VERSIONS_DIR -maxdepth 2 -type d \
     | sed 's|'$BASE_VERSIONS_DIR'/||g' \
     | egrep "/v[0-9]+\.[0-9]+\.[0-9]+" \

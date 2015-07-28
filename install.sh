@@ -203,11 +203,11 @@ tnvm_do_install() {
       echo "=> Source string already in $NVM_PROFILE"
     fi
     source "$NVM_PROFILE"
+    exec bash
   fi
-
   #tnvm_check_global_modules
-  #echo "=> Close and reopen your terminal to start using tnvm"
-  #tnvm_reset
+  echo "=> Close and reopen your terminal to start using tnvm"
+  tnvm_reset
 }
 
 #
