@@ -176,8 +176,6 @@ tnvm_version() {
 
 
 tnvm_remote_version() {
-  local PREFIX
-  PREFIX="$(tnvm_get_prefix "$1")"
   local PATTERN
   PATTERN="$(tnvm_get_version "$1")"
   local VERSION
@@ -186,7 +184,7 @@ tnvm_remote_version() {
     echo "N/A"
     return 3
   fi
-  echo "$PREFIX-$VERSION"
+  echo "$VERSION"
 }
 
 
@@ -329,7 +327,8 @@ tnvm_ls_remote() {
 
   VERSIONS=`tnvm_download -L -s $mirror/ -o - \
               | \egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+' \
-              | sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n`
+              | sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n \
+              | sed 's|^|'$PATTERN'-|g' `
   if [ -z "$VERSIONS" ]; then
     echo "N/A"
     return 3
