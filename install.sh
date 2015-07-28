@@ -25,9 +25,9 @@ tnvm_source() {
   NVM_SOURCE_URL="$NVM_SOURCE"
   if [ -z "$NVM_SOURCE_URL" ]; then
     if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/yjhjstz/tnvm/v1.x/tnvm.sh"
+      NVM_SOURCE_URL="https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh"
     elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
-      NVM_SOURCE_URL="https://github.com/yjhjstz/tnvm.git"
+      NVM_SOURCE_URL="https://github.com/ali-sdk/tnvm.git"
     else
       echo >&2 "Unexpected value \"$NVM_METHOD\" for \$NVM_METHOD"
       return 1
@@ -65,7 +65,7 @@ install_tnvm_from_git() {
     mkdir -p "$TNVM_DIR"
     command git clone "$(tnvm_source git)" "$TNVM_DIR"
   fi
-  cd "$TNVM_DIR" && command git checkout --quiet v1.x
+  cd "$TNVM_DIR" && command git checkout --quiet master
   return
 }
 
