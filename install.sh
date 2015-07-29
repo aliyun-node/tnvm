@@ -75,7 +75,6 @@ install_tnvm_as_script() {
 
   # Downloading to $TNVM_DIR
   mkdir -p "$TNVM_DIR"
-  mkdir -p "$TNVM_DIR/versions"
 
   if [ -d "$TNVM_DIR/tnvm.sh" ]; then
     echo "=> tnvm is already installed in $TNVM_DIR, trying to update the script"
@@ -206,7 +205,8 @@ tnvm_do_install() {
     exec bash
   fi
   #tnvm_check_global_modules
-  echo "=> Close and reopen your terminal to start using tnvm"
+  echo "=> Try source $NVM_PROFILE to start using tnvm"
+
   tnvm_reset
 }
 
