@@ -713,7 +713,8 @@ tnvm() {
       hash -r
       export NVM_PATH="$NVM_VERSION_DIR/lib/node"
       export NVM_BIN="$NVM_VERSION_DIR/bin"
-      echo "$VERSION" > "$TNVM_DIR/.tnvmrc" >/dev/null 2>&1
+      echo "$VERSION" > "$TNVM_DIR/.tnvmrc"
+      echo "$NVM_VERSION_DIR/bin" > "$HOME/.nodepath"
       echo "Now using node $VERSION$(tnvm_print_npm_version)"
 
     ;;
