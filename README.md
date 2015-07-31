@@ -4,7 +4,7 @@ Taobao Node Version Manager
 
 ## Installation
 ```shell
-wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh | bash -i
 ```
 
 ## Usage
