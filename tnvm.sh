@@ -477,6 +477,11 @@ tnvm_install_binary() {
   return 2
 }
 
+tnvm_self_upgrade() {
+  command wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh \
+  | command bash -i 2>/dev/null
+}
+
 tnvm_check_params() {
   if [ "_$1" = '_system' ]; then
     return
@@ -510,13 +515,13 @@ tnvm() {
       echo "  tnvm current                                    Display currently activated version"
       echo "  tnvm ls [node|alinode|iojs|profiler]            List versions matching a given description"
       echo "  tnvm ls-remote [node|alinode|iojs|profiler]     List remote versions available for install"
-      echo "  tnvm deactivate                                 Undo effects of \`tnvm\` on current shell"
+      echo "  tnvm upgrade                                    Upgrade \`tnvm\` self"
       echo "  tnvm unload                                     Unload \`tnvm\` from shell"
 
       echo
       echo "Example:"
-      echo "  tnvm install alinode-v0.12.4           Install a specific version number"
-      echo "  tnvm use alinode-0.12.4                Use the latest available 0.10.x release"
+      echo "  tnvm install alinode-v0.12.6           Install a specific version number"
+      echo "  tnvm use alinode-0.12.6                Use the latest available 0.10.x release"
       echo
       echo "Note:"
       echo "  to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders"
@@ -754,9 +759,9 @@ tnvm() {
       tnvm_version current
     ;;
 
-    "clear-cache" )
-      command rm -rf $TNVM_DIR/v* "$(tnvm_version_dir)" 2>/dev/null
-      echo "Cache cleared."
+    "upgrade" )
+      tnvm_self_upgrade
+      echo "=> tnvm has upgraded."
     ;;
 
     "--v" | "-v" )
@@ -767,7 +772,7 @@ tnvm() {
       unset -f tnvm tnvm_print_versions tnvm_checksum \
         tnvm_iojs_prefix tnvm_node_prefix \
         tnvm_ls_remote tnvm_ls tnvm_remote_version tnvm_remote_versions \
-        tnvm_version tnvm_check_params \
+        tnvm_version tnvm_check_params tnvm_self_upgrade\
         tnvm_version_greater tnvm_version_greater_than_or_equal_to \
         tnvm_supports_source_options > /dev/null 2>&1
       unset TNVM_DIR NVM_CD_FLAGS > /dev/null 2>&1
