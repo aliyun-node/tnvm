@@ -784,6 +784,36 @@ tnvm() {
   esac
 }
 
+
+function _tnvm_complete() {
+    local cur prev opts
+
+    COMPREPLY=()
+
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="-v help install uninstall use current ls ls-remote upgrade"
+    option="alinode node iojs profiler"
+
+    if [[ $prev == 'tnvm' ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+
+    case "$prev" in
+    -* )
+        COMPREPLY=( $( compgen -W "$opts" -- $cur ) )
+        ;;
+    ls | ls-remote )
+        COMPREPLY=( $( compgen -W "$option" -- $cur ) )
+        ;;
+    esac
+
+}
+
+complete -F _tnvm_complete tnvm
+
+
 if tnvm_rc_version >/dev/null 2>&1; then
   tnvm use "$TNVM_RC_VERSION" >/dev/null 2>&1
 fi
