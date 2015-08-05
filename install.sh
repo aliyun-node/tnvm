@@ -16,7 +16,6 @@ fi
 # Outputs the location to NVM depending on:
 # * The availability of $NVM_SOURCE
 # * The method used ("script" or "git" in the script, defaults to "git")
-# NVM_SOURCE always takes precedence unless the method is "script-nvm-exec"
 #
 tnvm_source() {
   local NVM_METHOD
@@ -25,7 +24,7 @@ tnvm_source() {
   NVM_SOURCE_URL="$NVM_SOURCE"
   if [ -z "$NVM_SOURCE_URL" ]; then
     if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh"
+      NVM_SOURCE_URL="https://raw.githubusercontent.com/ali-sdk/tnvm/master/tnvm.sh"
     elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
       NVM_SOURCE_URL="https://github.com/ali-sdk/tnvm.git"
     else
