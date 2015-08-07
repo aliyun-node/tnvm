@@ -726,7 +726,7 @@ tnvm() {
     "ls" | "list" )
       local NVM_LS_OUTPUT
       local NVM_LS_EXIT_CODE
-      if [ $# -eq 1 ]; then
+      if [ $# -ne 2 ]; then
         >&2 tnvm help
         return 127
       fi
@@ -737,6 +737,10 @@ tnvm() {
     ;;
     "ls-remote" | "list-remote" )
       local PATTERN
+      if [ $# -ne 2 ]; then
+        >&2 tnvm help
+        return 127
+      fi
       PATTERN="$2"
 
       local NVM_LS_REMOTE_EXIT_CODE
@@ -842,6 +846,7 @@ fi
 #tnvm use "node-v0.12.4"
 
 #tnvm ls "node"
+#tnvm ls-remote
 #tnvm install "alinode-v0.12.4"
 #tnvm install "profiler-v0.12.6"
 #tnvm use "profiler-v0.12.6"
