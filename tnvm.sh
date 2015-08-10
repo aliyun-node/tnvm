@@ -478,8 +478,8 @@ _tnvm_install_binary() {
 }
 
 _tnvm_self_upgrade() {
-  command wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh \
-  | command bash -i 2>/dev/null
+  command wget --tries=3 --timeout=15 -O- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh \
+  | command bash 2>/dev/null
 }
 
 _tnvm_check_params() {
@@ -765,7 +765,6 @@ tnvm() {
 
     "upgrade" )
       _tnvm_self_upgrade
-      echo "=> tnvm has upgraded."
     ;;
 
     "--v" | "-v" )
@@ -850,3 +849,5 @@ fi
 #tnvm install "alinode-v0.12.4"
 #tnvm install "profiler-v0.12.6"
 #tnvm use "profiler-v0.12.6"
+#_tnvm_self_upgrade
+
