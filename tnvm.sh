@@ -8,10 +8,10 @@
 
 NVM_SCRIPT_SOURCE="$_"
 
-MIRRORS=("http://npm.taobao.org/mirrors/node"
-        "http://npm.taobao.org/mirrors/iojs"
-        "http://alinode.aliyun.com/dist/alinode"
-        "http://alinode.aliyun.com/dist/node-profiler")
+MIRROR_NODE="http://npm.taobao.org/mirrors/node"
+MIRROR_IOJS="http://npm.taobao.org/mirrors/iojs"
+MIRROR_ALINODE="http://alinode.aliyun.com/dist/alinode"
+MIRROR_PROFILER="http://alinode.aliyun.com/dist/node-profiler"
 
 TNVM_IFS='-' #TODO
 
@@ -324,10 +324,10 @@ _tnvm_ls_remote() {
   local VERSIONS
   local mirror
   case "$PATTERN" in
-    "node") mirror=${MIRRORS[0]} ;;
-    "iojs") mirror=${MIRRORS[1]} ;;
-    "alinode") mirror=${MIRRORS[2]} ;;
-    "profiler") mirror=${MIRRORS[3]} ;;
+    "node") mirror=$MIRROR_NODE ;;
+    "iojs") mirror=$MIRROR_IOJS ;;
+    "alinode") mirror=$MIRROR_ALINODE ;;
+    "profiler") mirror=$MIRROR_PROFILER ;;
   esac
 
   VERSIONS=`_tnvm_download -L -s $mirror/ -o - \
@@ -430,10 +430,10 @@ _tnvm_install_binary() {
   local mirror
 
   case "$PREFIX" in
-    "node") mirror=${MIRRORS[0]} ;;
-    "iojs") mirror=${MIRRORS[1]} ;;
-    "alinode") mirror=${MIRRORS[2]} ;;
-    "profiler") mirror=${MIRRORS[3]} ;;
+    "node") mirror=$MIRROR_NODE ;;
+    "iojs") mirror=$MIRROR_IOJS ;;
+    "alinode") mirror=$MIRROR_ALINODE ;;
+    "profiler") mirror=$MIRROR_PROFILER ;;
   esac
 
   if [ -n "$NVM_OS" ]; then
