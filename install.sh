@@ -36,9 +36,7 @@ tnvm_source() {
 }
 
 tnvm_download() {
-  if tnvm_has "curl"; then
-    curl -q $*
-  elif tnvm_has "wget"; then
+  if tnvm_has "wget"; then
     # Emulate curl with wget
     ARGS=$(echo "$*" | command sed -e 's/--progress-bar /--progress=bar /' \
                            -e 's/-L //' \
@@ -47,6 +45,8 @@ tnvm_download() {
                            -e 's/-o /-O /' \
                            -e 's/-C - /-c /')
     wget $ARGS
+  elif tnvm_has "curl"; then
+    curl -q $*
   fi
 }
 
