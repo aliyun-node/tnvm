@@ -80,7 +80,7 @@ install_tnvm_as_script() {
   else
     echo "=> Downloading tnvm as script to '$TNVM_DIR'"
   fi
-  tnvm_download -s "$NVM_SOURCE_LOCAL" -o "$TNVM_DIR/tnvm.sh" || {
+  tnvm_download -s --no-check-certificate "$NVM_SOURCE_LOCAL" -o "$TNVM_DIR/tnvm.sh" || {
     echo >&2 "Failed to download '$NVM_SOURCE_LOCAL'"
     return 1
   }
