@@ -200,8 +200,6 @@ tnvm_do_install() {
     else
       echo "=> Source string already in $NVM_PROFILE"
     fi
-    source "$NVM_PROFILE"
-    exec bash
   fi
   #tnvm_check_global_modules
   echo "=> Try source $NVM_PROFILE to start using tnvm"

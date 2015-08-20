@@ -4,12 +4,13 @@ Taobao Node Version Manager
 
 ## Installation
 ```shell
-wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh --no-check-certificate | bash -i 
+wget -qO- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh --no-check-certificate | bash 
 ```
 PS: 内网环境可在执行上述命令前增加执行, 内部使用wget获取文件
 ```
 export METHOD=script
 ```
+手动source rc文件或重新打开sh
 
 ## Usage
 Support `alinode`, `node`, `iojs`, `node-profiler` version manager
