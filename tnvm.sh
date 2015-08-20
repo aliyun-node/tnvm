@@ -815,8 +815,9 @@ function _tnvm_complete() {
 
 }
 
-complete -F _tnvm_complete tnvm
-
+if _tnvm_has "complete"; then
+  complete -F _tnvm_complete tnvm
+fi
 
 if _tnvm_rc_version >/dev/null 2>&1; then
   tnvm use "$TNVM_RC_VERSION" >/dev/null 2>&1
