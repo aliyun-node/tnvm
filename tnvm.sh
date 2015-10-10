@@ -10,7 +10,7 @@ NVM_SCRIPT_SOURCE="$_"
 
 MIRROR_NODE="http://npm.taobao.org/mirrors/node"
 MIRROR_IOJS="http://npm.taobao.org/mirrors/iojs"
-MIRROR_ALINODE="http://alinode.aliyun.com/dist/alinode"
+MIRROR_ALINODE="http://alinode.aliyun.com/dist/new-alinode"
 MIRROR_PROFILER="http://alinode.aliyun.com/dist/node-profiler"
 
 TNVM_IFS='-' #TODO
@@ -258,7 +258,7 @@ _tnvm_prepend_path() {
 _tnvm_binary_available() {
   # binaries started with node 0.11.12
   local FIRST_VERSION_WITH_BINARY
-  FIRST_VERSION_WITH_BINARY="0.11.12"
+  FIRST_VERSION_WITH_BINARY="0.3.1"
   _tnvm_version_greater_than_or_equal_to "$(_tnvm_get_version $1)" "$FIRST_VERSION_WITH_BINARY"
 }
 
@@ -272,7 +272,7 @@ _tnvm_ls_current() {
   elif _tnvm_tree_contains_path "$(_tnvm_version_dir node-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(node $(node -v 2>/dev/null))"
   elif _tnvm_tree_contains_path "$(_tnvm_version_dir alinode-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
-    echo "(alinode $(node -V 2>/dev/null)) --> (node $(node -v 2>/dev/null))"
+    echo "(alinode-$(node -p 'process.alinode' 2>/dev/null)) --> (node-$(node -v 2>/dev/null))"
   elif _tnvm_tree_contains_path "$(_tnvm_version_dir profiler-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(profiler $(node -v 2>/dev/null))"
   else
@@ -318,6 +318,34 @@ _tnvm_ls() {
 
 }
 
+_tnvm_lookup_nodemap() {
+  local PATTERN
+  PATTERN="$1"
+  local NODEMAP
+  local mirror
+  case "$PATTERN" in
+    "alinode") mirror=$MIRROR_ALINODE
+    ;;
+    "profiler") mirror=$MIRROR_PROFILER
+    ;;
+    *) return 1
+    ;;
+  esac
+
+  NODEMAP="$(_tnvm_download -L -s "$mirror/index.tab" -o - \
+    | command sed "
+        1d;
+        s/^/$PATTERN-/;" \
+    | command awk '{ print "Node.js upkeep release to provide "$1 " with Node.js " $10}' \
+    | command grep -w "$PATTERN" \
+    | command sort)"
+
+  if [ -z "$NODEMAP" ]; then
+    return 3
+  fi
+  echo "$NODEMAP"
+}
+
 _tnvm_ls_remote() {
   local PATTERN
   PATTERN="$1"
@@ -330,10 +358,14 @@ _tnvm_ls_remote() {
     "profiler") mirror=$MIRROR_PROFILER ;;
   esac
 
-  VERSIONS=`_tnvm_download -L -s $mirror/ -o - \
-              | \egrep -o 'v[0-9]+\.[0-9]+\.[0-9]+' \
-              | sort -t. -u -k 1.2,1n -k 2,2n -k 3,3n \
-              | sed 's|^|'$PATTERN'-|g' `
+  VERSIONS="$(_tnvm_download -L -s "$mirror/index.tab" -o - \
+    | command sed "
+        1d;
+        s/^/$PATTERN-/;
+        s/[[:blank:]].*//" \
+    | command grep -w "$PATTERN" \
+    | command sort)"
+
   if [ -z "$VERSIONS" ]; then
     echo "N/A"
     return 3
@@ -478,7 +510,7 @@ _tnvm_install_binary() {
 }
 
 _tnvm_self_upgrade() {
-  command wget --tries=3 --timeout=15 -O- https://raw.githubusercontent.com/ali-sdk/tnvm/master/install.sh \
+  command wget --tries=3 --timeout=15 -O- https://raw.githubusercontent.com/aliyun-node/tnvm/master/install.sh \
   | command bash 2>/dev/null
 }
 
@@ -509,6 +541,7 @@ tnvm() {
       echo "Usage:"
       echo "  tnvm help                                       Show this message"
       echo "  tnvm -v                                         Print out the latest released version of tnvm"
+      echo "  tnvm lookup                                     Print alinode base on node versions"
       echo "  tnvm install <version>                          Download and install a <version>"
       echo "  tnvm uninstall <version>                        Uninstall a version"
       echo "  tnvm use <version>                              Modify PATH to use <version>. Uses .tnvmrc if available"
@@ -527,7 +560,6 @@ tnvm() {
       echo "  to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders"
       echo
     ;;
-
 
     "install" | "i" )
       local nobinary
@@ -560,6 +592,7 @@ tnvm() {
 
       if [ "_$VERSION" = "_N/A" ]; then
         echo "Version '$provided_version' not found - try \`tnvm ls-remote\` to browse available versions." >&2
+        echo "Or try \`tnvm lookup\` for details." >&2
         return 3
       fi
       echo $VERSION
@@ -759,6 +792,11 @@ tnvm() {
         return 3
       fi
     ;;
+
+    "lookup" )
+     _tnvm_lookup_nodemap "alinode"
+    ;;
+
     "current" )
       _tnvm_version current
     ;;
@@ -773,7 +811,7 @@ tnvm() {
 
     "unload" )
       unset -f tnvm _tnvm_print_versions _tnvm_checksum \
-        _tnvm_iojs_prefix _tnvm_node_prefix \
+        _tnvm_iojs_prefix _tnvm_node_prefix _tnvm_lookup_nodemap \
         _tnvm_ls_remote _tnvm_ls _tnvm_remote_version _tnvm_remote_versions \
         _tnvm_version _tnvm_check_params _tnvm_self_upgrade\
         _tnvm_version_greater _tnvm_version_greater_than_or_equal_to \
@@ -851,4 +889,7 @@ fi
 #tnvm install "profiler-v0.12.6"
 #tnvm use "profiler-v0.12.6"
 #_tnvm_self_upgrade
+#tnvm install "alinode-v0.3.2"
+#_tnvm_lookup_nodemap "alinode"
+#_tnvm_lookup_nodemap "profiler"
 

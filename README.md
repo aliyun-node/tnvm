@@ -19,12 +19,21 @@ export METHOD=script
 ## Usage
 Support `alinode`, `node`, `iojs`, `node-profiler` version manager
 
-Example:
- * tnvm ls alinode
+`tnvm lookup` 查看 `alinode` 基于 `node` 的版本, 便于替换相应版本。
+
+Example install alinode:
  * tnvm ls-remote alinode
+ * tnvm lookup
  * tnvm install alinode-v0.12.6
- * tnvm install node-v0.12.6
  * tnvm use alinode-v0.12.6
+
+Example install node:
+ * tnvm install node-v0.12.6
+ * tnvm use node-v0.12.6
+
+Example install node-profiler:
+ * tnvm install profiler-v0.12.6
+ * tnvm use profiler-v0.12.6
 
 More:
  * refer to `tnvm help`
