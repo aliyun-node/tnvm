@@ -553,8 +553,8 @@ tnvm() {
 
       echo
       echo "Example:"
-      echo "  tnvm install alinode-v0.12.6           Install a specific version number"
-      echo "  tnvm use alinode-0.12.6                Use the latest available 0.10.x release"
+      echo "  tnvm install alinode-v1.0.0           Install a specific version number"
+      echo "  tnvm use alinode-v1.0.0               Use the latest available release"
       echo
       echo "Note:"
       echo "  to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders"
@@ -833,7 +833,7 @@ function _tnvm_complete() {
 
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-v help install uninstall use current ls ls-remote upgrade"
+    opts="-v help install uninstall use current ls ls-remote upgrade lookup"
     option="alinode node iojs profiler"
 
     if [[ $prev == 'tnvm' ]] ; then
