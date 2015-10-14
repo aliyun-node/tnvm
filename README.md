@@ -24,12 +24,12 @@ Support `alinode`, `node`, `iojs`, `node-profiler` version manager
 Example install alinode:
  * tnvm ls-remote alinode
  * tnvm lookup
- * tnvm install alinode-v0.12.6
- * tnvm use alinode-v0.12.6
+ * tnvm install alinode-v1.0.0
+ * tnvm use alinode-v1.0.0
 
 Example install node:
- * tnvm install node-v0.12.6
- * tnvm use node-v0.12.6
+ * tnvm install node-v4.2.1
+ * tnvm use node-v4.2.1
 
 Example install node-profiler:
  * tnvm install profiler-v0.12.6
