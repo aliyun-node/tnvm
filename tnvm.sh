@@ -510,7 +510,7 @@ _tnvm_install_binary() {
 }
 
 _tnvm_self_upgrade() {
-  command wget --tries=3 --timeout=15 -O- https://raw.githubusercontent.com/aliyun-node/tnvm/master/install.sh \
+  command wget --tries=3 --timeout=15 -O- https://raw.githubusercontent.com/ali-sdk/tnvm/master/tnvm.sh \
   | command bash 2>/dev/null
 }
 
@@ -803,6 +803,7 @@ tnvm() {
 
     "upgrade" )
       _tnvm_self_upgrade
+      echo "then try source ~/.bashrc, or ~/.zshrc"
     ;;
 
     "--v" | "-v" )
