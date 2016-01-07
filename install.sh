@@ -24,9 +24,9 @@ tnvm_source() {
   NVM_SOURCE_URL="$NVM_SOURCE"
   if [ -z "$NVM_SOURCE_URL" ]; then
     if [ "_$NVM_METHOD" = "_script" ]; then
-      NVM_SOURCE_URL="https://raw.githubusercontent.com/ali-sdk/tnvm/master/tnvm.sh"
+      NVM_SOURCE_URL="https://raw.githubusercontent.com/aliyun-node/tnvm/master/tnvm.sh"
     elif [ "_$NVM_METHOD" = "_git" ] || [ -z "$NVM_METHOD" ]; then
-      NVM_SOURCE_URL="https://github.com/ali-sdk/tnvm.git"
+      NVM_SOURCE_URL="https://github.com/aliyun-node/tnvm.git"
     else
       echo >&2 "Unexpected value \"$NVM_METHOD\" for \$NVM_METHOD"
       return 1
