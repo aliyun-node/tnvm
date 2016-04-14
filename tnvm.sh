@@ -26,7 +26,7 @@ _tnvm_is_alias() {
 
 _tnvm_download() {
   if _tnvm_has "curl"; then
-    curl -q $*
+    curl -q -k $*
   elif _tnvm_has "wget"; then
     # Emulate curl with wget
     ARGS=$(echo "$*" | command sed -e 's/--progress-bar /--progress=bar /' \
