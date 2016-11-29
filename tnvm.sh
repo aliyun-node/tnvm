@@ -181,7 +181,7 @@ _tnvm_remote_version() {
   local PATTERN
   PATTERN="$(_tnvm_get_version "$1")"
   local VERSION
-  VERSION="$(_tnvm_remote_versions "$PREFIX" | command grep -w "$PATTERN")"
+  VERSION="$(_tnvm_remote_versions "$PREFIX" | command grep -w "$PATTERN$")"
   if [ "_$VERSION" = '_N/A' ] || [ -z "$VERSION" ] ; then
     echo "N/A"
     return 3
