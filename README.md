@@ -6,6 +6,11 @@ Taobao Node Version Manager
 ```shell
 wget -O- https://raw.githubusercontent.com/aliyun-node/tnvm/master/install.sh | bash
 ```
+使用curl(Mac 已内置)
+```shell
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/aliyun-node/tnvm/master/install.sh)"
+```
+
 PS: 内网环境或者代理环境可在执行上述命令前增加执行, 使用wget获取文件
 ```
 export METHOD=script
