@@ -293,7 +293,7 @@ _tnvm_node_prefix() {
 }
 
 _tnvm_get_prefix() {
-  echo "${1%-*}"
+  echo "${1%-v*}"
 }
 
 _tnvm_get_version() {
@@ -469,7 +469,7 @@ _tnvm_install_binary() {
   esac
 
   if [ -n "$NVM_OS" ]; then
-    if _tnvm_binary_available "$VERSION"; then
+    if _tnvm_binary_available "$PREFIXED_VERSION"; then
       t="$VERSION-$NVM_OS-$(_tnvm_get_arch)"
       url="$mirror/$VERSION/$PREFIX-${t}.tar.gz"
       sum="$(_tnvm_download -L -s $mirror/$VERSION/SHASUMS256.txt -o - \
@@ -518,7 +518,7 @@ _tnvm_check_params() {
   if [ "_$1" = '_system' ]; then
     return
   fi
-  echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+(?:\.[a-z]+)?$' > /dev/null
+  echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+(?:[-\.a-z]+)?$' > /dev/null
 }
 
 tnvm() {
