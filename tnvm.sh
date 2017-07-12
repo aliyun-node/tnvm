@@ -518,7 +518,7 @@ _tnvm_check_params() {
   if [ "_$1" = '_system' ]; then
     return
   fi
-  echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+(?:[-\.a-z]+)?$' > /dev/null
+  echo "$1" | egrep -o '^[a-z]+-v[0-9]+\.[0-9]+\.[0-9]+[-\.a-z]+?$' > /dev/null
 }
 
 tnvm() {
@@ -585,7 +585,7 @@ tnvm() {
       nobinary=0
       provided_version="$1"
       if ! _tnvm_check_params "$1" ; then
-        echo "Version '$1' not vaild." >&2
+        echo "Version '$1' not valid." >&2
         return 3
       fi
       VERSION="$(_tnvm_remote_version "$provided_version")"
@@ -630,7 +630,7 @@ tnvm() {
       PATTERN="$2"
 
       if ! _tnvm_check_params "$2" ; then
-        echo "Version '$2' not vaild." >&2
+        echo "Version '$2' not valid." >&2
         return 3
       fi
 
@@ -698,7 +698,7 @@ tnvm() {
         VERSION="$PROVIDED_VERSION"
       fi
       if ! _tnvm_check_params "$2" ; then
-        echo "Version '$2' not vaild." >&2
+        echo "Version '$2' not valid." >&2
         return 3
       fi
       if [ -z "$VERSION" ]; then
