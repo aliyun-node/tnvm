@@ -183,7 +183,7 @@ tnvm_do_install() {
   local NVM_PROFILE
   NVM_PROFILE=$(tnvm_detect_profile)
 
-  SOURCE_STR="\nexport TNVM_DIR=\"$TNVM_DIR\"\n[ -s \"\$TNVM_DIR/tnvm.sh\" ] && . \"\$TNVM_DIR/tnvm.sh\"  # This loads nvm"
+  SOURCE_STR="\nexport TNVM_DIR=\"$TNVM_DIR\"\n[ -s \"\$TNVM_DIR/tnvm.sh\" ] && . \"\$TNVM_DIR/tnvm.sh\"  # This loads tnvm"
 
   if [ -z "$NVM_PROFILE" ] ; then
     echo "=> Profile not found. Tried $NVM_PROFILE (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
