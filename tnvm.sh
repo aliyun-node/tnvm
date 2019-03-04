@@ -26,7 +26,7 @@ _tnvm_is_alias() {
 
 _tnvm_download() {
   if _tnvm_has "curl"; then
-    curl -q $*
+    curl -q --retry 3 $*
   elif _tnvm_has "wget"; then
     # Emulate curl with wget
     ARGS=$(echo "$*" | command sed -e 's/--progress-bar /--progress=bar /' \
@@ -35,7 +35,7 @@ _tnvm_download() {
                            -e 's/-s /-q /' \
                            -e 's/-o /-O /' \
                            -e 's/-C - /-c /')
-    eval wget $ARGS
+    eval wget --retry-connrefused --tries 3 $ARGS
   fi
 }
 
