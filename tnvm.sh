@@ -8,8 +8,8 @@
 
 NVM_SCRIPT_SOURCE="$_"
 
-MIRROR_NODE="http://npm.taobao.org/mirrors/node"
-MIRROR_IOJS="http://npm.taobao.org/mirrors/iojs"
+MIRROR_NODE="https://cdn.npm.taobao.org/dist/node"
+MIRROR_IOJS="https://cdn.npm.taobao.org/dist/iojs"
 MIRROR_ALINODE="http://alinode.aliyun.com/dist/new-alinode"
 MIRROR_PROFILER="http://alinode.aliyun.com/dist/node-profiler"
 
@@ -893,4 +893,3 @@ fi
 #tnvm install "alinode-v0.3.2"
 #_tnvm_lookup_nodemap "alinode"
 #_tnvm_lookup_nodemap "profiler"
-
