@@ -778,6 +778,11 @@ tnvm() {
       echo "Now using node $VERSION$(_tnvm_print_npm_version)"
 
     ;;
+    "disuse" )
+      tnvm deactivate >/dev/null 2>&1
+      echo "" > "$TNVM_DIR/.tnvmrc"
+      echo "Successfully stopped using tnvm"
+    ;;
     "ls" | "list" )
       local NVM_LS_OUTPUT
       local NVM_LS_EXIT_CODE
