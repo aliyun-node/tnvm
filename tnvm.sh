@@ -436,6 +436,7 @@ _tnvm_get_arch() {
   case "$NVM_UNAME" in
     x86_64) NVM_ARCH="x64" ;;
     i*86) NVM_ARCH="x86" ;;
+    aarch64) NVM_ARCH="arm64" ;;
     *) NVM_ARCH="$NVM_UNAME" ;;
   esac
   echo "$NVM_ARCH"
