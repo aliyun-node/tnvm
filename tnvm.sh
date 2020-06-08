@@ -361,10 +361,10 @@ _tnvm_ls_remote() {
   VERSIONS="$(_tnvm_download -L -s "$mirror/index.tab" -o - \
     | command sed "
         1d;
-        s/^/$PATTERN-/;
         s/[[:blank:]].*//" \
-    | command grep -w "$PATTERN" \
-    | command sort)"
+    | command sort -t . -k 1.2n -k 2n -k 3n \
+    | command sed "s/^/$PATTERN-/;" \
+  )"
 
   if [ -z "$VERSIONS" ]; then
     echo "N/A"
