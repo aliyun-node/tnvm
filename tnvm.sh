@@ -357,10 +357,11 @@ _tnvm_ls_remote() {
     "alinode") mirror=$MIRROR_ALINODE ;;
     "profiler") mirror=$MIRROR_PROFILER ;;
   esac
+  local ARCH=$(_tnvm_get_arch)
 
   VERSIONS="$(_tnvm_download -L -s "$mirror/index.tab" -o - \
+    | command grep -F "$ARCH" \
     | command sed "
-        1d;
         s/^/$PATTERN-/;
         s/[[:blank:]].*//" \
     | command grep -w "$PATTERN" \
