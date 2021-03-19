@@ -326,19 +326,15 @@ _tnvm_lookup_nodemap() {
   case "$PATTERN" in
     "alinode") mirror=$MIRROR_ALINODE
     ;;
-    "profiler") mirror=$MIRROR_PROFILER
-    ;;
     *) return 1
     ;;
   esac
 
   NODEMAP="$(_tnvm_download -L -s "$mirror/index.tab" -o - \
-    | command sed "
-        1d;
-        s/^/$PATTERN-/;" \
-    | command awk '{ print "Node.js upkeep release to provide "$1 " with Node.js " $10}' \
-    | command grep -w "$PATTERN" \
-    | command sort)"
+    | command awk '{ print $1 $10}' \
+    | command awk -F "v" '{ print $2 " " $3}' \
+    | command sort -t. -k 1,1n -k 2,2n \
+    | command awk '{print "Node.js upkeep release to provide alinode-v"$1 " with Node.js v" $2}')"
 
   if [ -z "$NODEMAP" ]; then
     return 3
