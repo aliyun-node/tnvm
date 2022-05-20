@@ -118,6 +118,14 @@ _tnvm_version_greater_than_or_equal_to() {
   [ $LHS -ge $RHS ];
 }
 
+_tnvm_version_less_than() {
+  local LHS
+  LHS=$(_tnvm_normalize_version "$1")
+  local RHS
+  RHS=$(_tnvm_normalize_version "$2")
+  [ $LHS -lt $RHS ];
+}
+
 _tnvm_version_dir() {
   local PREFIX
   PREFIX="$(_tnvm_get_prefix $1)"
@@ -260,6 +268,14 @@ _tnvm_binary_available() {
   local FIRST_VERSION_WITH_BINARY
   FIRST_VERSION_WITH_BINARY="0.3.1"
   _tnvm_version_greater_than_or_equal_to "$(_tnvm_get_version $1)" "$FIRST_VERSION_WITH_BINARY"
+}
+
+_tnvm_binary_should_use_darwin_x64() {
+  # darwin arm64 binaries started with node 16.0.0
+  # others could use x64 by rosetta
+  local FIRST_VERSION_WITH_DARWIN_X64
+  FIRST_VERSION_WITH_DARWIN_X64="16.0.0"
+  _tnvm_version_less_than "$(_tnvm_get_version $1)" "$FIRST_VERSION_WITH_DARWIN_X64"
 }
 
 _tnvm_ls_current() {
@@ -439,6 +455,13 @@ _tnvm_get_arch() {
     aarch64) NVM_ARCH="arm64" ;;
     *) NVM_ARCH="$NVM_UNAME" ;;
   esac
+
+  local PREFIX
+  PREFIX="$(_tnvm_get_prefix "$1")"
+  if [ "$PREFIX" == "node" -a "$NVM_ARCH" == "arm64" ] && _tnvm_binary_should_use_darwin_x64 "$1"; then
+      NVM_ARCH="x64"
+  fi
+
   echo "$NVM_ARCH"
 }
 
@@ -471,8 +494,9 @@ _tnvm_install_binary() {
 
   if [ -n "$NVM_OS" ]; then
     if _tnvm_binary_available "$PREFIXED_VERSION"; then
-      t="$VERSION-$NVM_OS-$(_tnvm_get_arch)"
+      t="$VERSION-$NVM_OS-$(_tnvm_get_arch "$PREFIXED_VERSION")"
       url="$mirror/$VERSION/$PREFIX-${t}.tar.gz"
+      echo "will download $PREFIX-${t}.tar.gz"
       sum="$(_tnvm_download -L -s $mirror/$VERSION/SHASUMS256.txt -o - \
            | command grep $PREFIX-${t}.tar.gz | command awk '{print $1}')"
       if [ -z "$sum" ]; then
@@ -648,19 +672,16 @@ tnvm() {
         return;
       fi
 
-      t="$VERSION-$(_tnvm_get_os)-$(_tnvm_get_arch)"
+      t="$VERSION-$(_tnvm_get_os)-$(_tnvm_get_arch "$VERSION")"
 
-      local NVM_PREFIX
       local NVM_SUCCESS_MSG
-
-      NVM_PREFIX="$(_tnvm_get_prefix)"
       NVM_SUCCESS_MSG="Uninstalled  $VERSION and reopen your terminal."
 
       # Delete all files related to target version.
-      command rm -rf "$TNVM_DIR/src/$NVM_PREFIX-$VERSION" \
-             "$TNVM_DIR/src/$NVM_PREFIX-$VERSION.tar.gz" \
-             "$TNVM_DIR/bin/$NVM_PREFIX-${t}" \
-             "$TNVM_DIR/bin/$NVM_PREFIX-${t}.tar.gz" \
+      command rm -rf "$TNVM_DIR/src/$VERSION" \
+             "$TNVM_DIR/src/$VERSION.tar.gz" \
+             "$TNVM_DIR/bin/${t}" \
+             "$TNVM_DIR/bin/${t}.tar.gz" \
              "$VERSION_PATH" 2>/dev/null
       echo "$NVM_SUCCESS_MSG"
     ;;
