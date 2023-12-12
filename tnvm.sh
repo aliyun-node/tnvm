@@ -3,17 +3,12 @@
 # Should work on sh, dash, bash, ksh, zsh
 # To use source this file from your bash profile
 
-
 { # this ensures the entire script is downloaded #
 
 NVM_SCRIPT_SOURCE="$_"
 
 MIRROR_NODE="https://cdn.npm.taobao.org/dist/node"
-MIRROR_IOJS="https://cdn.npm.taobao.org/dist/iojs"
 MIRROR_ALINODE="http://alinode.aliyun.com/dist/new-alinode"
-MIRROR_PROFILER="http://alinode.aliyun.com/dist/node-profiler"
-
-TNVM_IFS='-' #TODO
 
 _tnvm_has() {
   type "$1" > /dev/null 2>&1
@@ -41,10 +36,6 @@ _tnvm_download() {
 
 _tnvm_has_system_node() {
   [ "$(tnvm deactivate >/dev/null 2>&1 && command -v node)" != '' ]
-}
-
-_tnvm_has_system_iojs() {
-  [ "$(tnvm deactivate >/dev/null 2>&1 && command -v iojs)" != '' ]
 }
 
 _tnvm_print_npm_version() {
@@ -283,27 +274,19 @@ _tnvm_ls_current() {
   NVM_LS_CURRENT_NODE_PATH="$(command which node 2> /dev/null)"
   if [ $? -ne 0 ]; then
     echo 'none'
-  elif _tnvm_tree_contains_path "$(_tnvm_version_dir iojs-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
-    echo "(iojs $(iojs -v 2>/dev/null))"
   elif _tnvm_tree_contains_path "$(_tnvm_version_dir node-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(node $(node -v 2>/dev/null))"
   elif _tnvm_tree_contains_path "$(_tnvm_version_dir alinode-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
     echo "(alinode-$(node -p 'process.alinode' 2>/dev/null)) --> (node-$(node -v 2>/dev/null))"
-  elif _tnvm_tree_contains_path "$(_tnvm_version_dir profiler-v)" "$NVM_LS_CURRENT_NODE_PATH"; then
-    echo "(profiler $(node -v 2>/dev/null))"
   else
     echo 'system'
   fi
 }
 
-
 _tnvm_alinode_prefix() {
   echo "alinode"
 }
 
-_tnvm_iojs_prefix() {
-  echo "iojs"
-}
 _tnvm_node_prefix() {
   echo "node"
 }
@@ -342,8 +325,6 @@ _tnvm_lookup_nodemap() {
   case "$PATTERN" in
     "alinode") mirror=$MIRROR_ALINODE
     ;;
-    "profiler") mirror=$MIRROR_PROFILER
-    ;;
     *) return 1
     ;;
   esac
@@ -369,9 +350,7 @@ _tnvm_ls_remote() {
   local mirror
   case "$PATTERN" in
     "node") mirror=$MIRROR_NODE ;;
-    "iojs") mirror=$MIRROR_IOJS ;;
     "alinode") mirror=$MIRROR_ALINODE ;;
-    "profiler") mirror=$MIRROR_PROFILER ;;
   esac
   local ARCH=$(_tnvm_get_arch)
 
@@ -474,7 +453,7 @@ _tnvm_install_binary() {
   local VERSION
   VERSION="$(_tnvm_get_version "$PREFIXED_VERSION")" #v0.12.4
   local PREFIX
-  PREFIX="$(_tnvm_get_prefix "$PREFIXED_VERSION")" #node, iojs, alinode
+  PREFIX="$(_tnvm_get_prefix "$PREFIXED_VERSION")" #node, alinode
 
 
   local VERSION_PATH
@@ -488,9 +467,7 @@ _tnvm_install_binary() {
 
   case "$PREFIX" in
     "node") mirror=$MIRROR_NODE ;;
-    "iojs") mirror=$MIRROR_IOJS ;;
     "alinode") mirror=$MIRROR_ALINODE ;;
-    "profiler") mirror=$MIRROR_PROFILER ;;
   esac
 
   if [ -n "$NVM_OS" ]; then
@@ -565,22 +542,22 @@ tnvm() {
       echo "Taobao Node Version Manager"
       echo
       echo "Usage:"
-      echo "  tnvm help                                       Show this message"
-      echo "  tnvm -v                                         Print out the latest released version of tnvm"
-      echo "  tnvm lookup                                     Print alinode base on node versions"
-      echo "  tnvm install <version>                          Download and install a <version>"
-      echo "  tnvm uninstall <version>                        Uninstall a version"
-      echo "  tnvm use <version>                              Modify PATH to use <version>. Uses .tnvmrc if available"
-      echo "  tnvm current                                    Display currently activated version"
-      echo "  tnvm ls [node|alinode|iojs|profiler]            List versions matching a given description"
-      echo "  tnvm ls-remote [node|alinode|iojs|profiler]     List remote versions available for install"
-      echo "  tnvm upgrade                                    Upgrade \`tnvm\` self"
-      echo "  tnvm unload                                     Unload \`tnvm\` from shell"
+      echo "  tnvm help                         Show this message"
+      echo "  tnvm -v                           Print out the latest released version of tnvm"
+      echo "  tnvm lookup                       Print alinode base on node versions"
+      echo "  tnvm install <version>            Download and install a <version>"
+      echo "  tnvm uninstall <version>          Uninstall a version"
+      echo "  tnvm use <version>                Modify PATH to use <version>. Uses .tnvmrc if available"
+      echo "  tnvm current                      Display currently activated version"
+      echo "  tnvm ls [node|alinode]            List versions matching a given description"
+      echo "  tnvm ls-remote [node|alinode]     List remote versions available for install"
+      echo "  tnvm upgrade                      Upgrade \`tnvm\` self"
+      echo "  tnvm unload                       Unload \`tnvm\` from shell"
 
       echo
       echo "Example:"
-      echo "  tnvm install alinode-v1.0.0           Install a specific version number"
-      echo "  tnvm use alinode-v1.0.0               Use the latest available release"
+      echo "  tnvm install alinode-v1.0.0       Install a specific version number"
+      echo "  tnvm use alinode-v1.0.0           Use the latest available release"
       echo
       echo "Note:"
       echo "  to remove, delete, or uninstall tnvm - just remove ~/.tnvm, ~/.npm, and ~/.bower folders"
@@ -589,8 +566,6 @@ tnvm() {
 
     "install" | "i" )
       local nobinary
-      local version_not_provided
-      version_not_provided=0
       local provided_version
       local NVM_OS
       NVM_OS="$(_tnvm_get_os)"
@@ -601,7 +576,6 @@ tnvm() {
       fi
 
       if [ $# -lt 2 ]; then
-        version_not_provided=1
         >&2 tnvm help
         return 127
       fi
@@ -733,9 +707,6 @@ tnvm() {
         if _tnvm_has_system_node && tnvm deactivate >/dev/null 2>&1; then
           echo "Now using system version of node: $(node -v 2>/dev/null)$(_tnvm_print_npm_version)"
           return
-        elif _tnvm_has_system_iojs && tnvm deactivate >/dev/null 2>&1; then
-          echo "Now using system version of io.js: $(iojs --version 2>/dev/null)$(_tnvm_print_npm_version)"
-          return
         else
           echo "System version of node not found." >&2
           return 127
@@ -840,7 +811,7 @@ tnvm() {
 
     "unload" )
       unset -f tnvm _tnvm_print_versions _tnvm_checksum \
-        _tnvm_iojs_prefix _tnvm_node_prefix _tnvm_lookup_nodemap \
+        _tnvm_node_prefix _tnvm_lookup_nodemap \
         _tnvm_ls_remote _tnvm_ls _tnvm_remote_version _tnvm_remote_versions \
         _tnvm_version _tnvm_check_params _tnvm_self_upgrade\
         _tnvm_version_greater _tnvm_version_greater_than_or_equal_to \
@@ -863,7 +834,7 @@ function _tnvm_complete() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     opts="-v help install uninstall use current ls ls-remote upgrade lookup"
-    option="alinode node iojs profiler"
+    option="alinode node"
 
     if [[ $prev == 'tnvm' ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -894,7 +865,6 @@ fi
 
 #_tnvm_version_dir
 #_tnvm_ls "node"
-#_tnvm_ls "iojs"
 #_tnvm_remote_versions "alinode"
 #_tnvm_remote_version "alinode-v0.12.5"
 #_tnvm_remote_version "alinode-v0.12.7"
@@ -904,20 +874,15 @@ fi
 
 # cmd test
 #tnvm --version
-#tnvm list-remote "iojs"
 #tnvm ls-remote "alinode"
 #tnvm install "node-v0.12.4"
 #tnvm install "alinode-v0.12.4"
-#tnvm install "iojs-v2.4.0"
 
 #tnvm use "node-v0.12.4"
 
 #tnvm ls "node"
 #tnvm ls-remote
 #tnvm install "alinode-v0.12.4"
-#tnvm install "profiler-v0.12.6"
-#tnvm use "profiler-v0.12.6"
 #_tnvm_self_upgrade
 #tnvm install "alinode-v0.3.2"
 #_tnvm_lookup_nodemap "alinode"
-#_tnvm_lookup_nodemap "profiler"
