@@ -7,7 +7,7 @@
 
 NVM_SCRIPT_SOURCE="$_"
 
-MIRROR_NODE="https://cdn.npm.taobao.org/dist/node"
+MIRROR_NODE="https://cdn.npmmirror.com/binaries/node"
 MIRROR_ALINODE="http://alinode.aliyun.com/dist/new-alinode"
 
 _tnvm_has() {
