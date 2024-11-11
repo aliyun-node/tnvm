@@ -8,7 +8,7 @@
 NVM_SCRIPT_SOURCE="$_"
 
 MIRROR_NODE="https://cdn.npmmirror.com/binaries/node"
-MIRROR_ALINODE="http://alinode.aliyun.com/dist/new-alinode"
+MIRROR_ALINODE="https://cdn.npmmirror.com/binaries/alinode"
 
 _tnvm_has() {
   type "$1" > /dev/null 2>&1
